@@ -2,29 +2,49 @@
 
 > "What I cannot create, I do not understand." — Richard Feynman
 
-对 GitHub 上 **469K+ stars** 的 [build-your-own-x](https://github.com/codecrafters-io/build-your-own-x) 仓库进行深度研究，以《周易》八卦映射技术版图，用五德体系解析 **590+ 篇教程、31 个技术类别、37+ 种编程语言** 构成的造物生态。
+受 [build-your-own-x](https://github.com/codecrafters-io/build-your-own-x) 启发，从零开始亲手构建各种有趣的小项目——用造物理解原理。每个项目都是独立的单文件 HTML 应用，零依赖，浏览器直接打开即可运行。
+
+**在线体验** → [hongxin.github.io/build-your-own-x](https://hongxin.github.io/build-your-own-x/)
+
+## 项目展示
+
+| 项目 | 简介 | 关键技术 |
+|------|------|---------|
+| [Weather Clock](projects/braun-weather-clock.html) | 伯朗(Braun)设计风格的天气时钟，实时天气 + 三日预报，明暗双主题 | Open-Meteo API · Geolocation · CSS Variables |
+| [Raycaster Maze](projects/raycaster-maze.html) | 第一人称视角光线投射迷宫，Wolfenstein 3D 风格实时渲染 | Canvas 2D · Raycasting · DDA 算法 |
+| [Taiji Bagua](projects/taiji-bagua.html) | 太极八卦技术映射交互可视化，五德雷达图 | SVG · 交互动画 · 数据驱动 |
+| [Data Dashboard](projects/visualization.html) | Build-Your-Own-X 生态全景数据大屏 | ECharts · 暗色主题 · 多维图表 |
 
 ## 项目结构
 
 ```
+build-your-own-x/
 ├── index.html                       # 项目画廊着陆页
-├── projects/
+├── projects/                        # 交互式项目
 │   ├── braun-weather-clock.html     # 伯朗风格天气时钟
 │   ├── raycaster-maze.html          # 光线投射迷宫
 │   ├── taiji-bagua.html             # 太极八卦交互可视化
 │   └── visualization.html           # ECharts 数据大屏
-├── data/
+├── data/                            # 共享数据
 │   └── skill-tree-data.json         # 结构化数据（八卦 + 五德 + 学习路径）
-└── docs/
+└── docs/                            # 研究文档
     ├── research-report.md           # 深度研究报告 v1
     └── research-report-v2.md        # 深度研究报告 v2
 ```
 
-## 核心框架
+## 设计理念
 
-### 八卦映射 — 万物归于八象
+每个项目遵循三个原则：
 
-将 31 个技术类别按本质属性映射到八卦体系：
+- **单文件完整** — 一个 HTML 文件包含全部代码，无需构建工具、无需安装依赖
+- **零配置运行** — 浏览器打开即用，不依赖服务端
+- **学以致用** — 每个项目都是对某个技术领域的实践探索
+
+## 研究：八卦映射技术版图
+
+对 build-your-own-x 仓库（469K+ stars）进行深度分析，以《周易》八卦映射 **590+ 篇教程、31 个技术类别、37+ 种编程语言** 的造物生态。
+
+### 八卦映射
 
 | 卦象 | 领域 | 代表类别 | 教程数 |
 |:---:|------|---------|:-----:|
@@ -37,10 +57,6 @@
 | ☶ 艮·山·守护 | 数据持久 | Database, Blockchain, Git | 49 |
 | ☱ 兑·泽·汇智 | 智慧涌现 | Neural Network, AI Model, Vision | 30 |
 
-### 五德评分
-
-每个八卦分组按**道/德/仁/义/礼**五个维度评分（10 分制），衡量技术深度、抽象层级、社区活跃度等特征。
-
 ### 六条修炼路径
 
 | 路径 | 方向 | 进阶顺序 |
@@ -52,23 +68,19 @@
 | 山路 | 数据守护者 | Git → Database → Blockchain → Search Engine |
 | 智路 | AI 实践者 | Neural Network → Vision → AI Model → Bot |
 
-## 数据洞察
-
-**语言三极**：Python (88) + JavaScript (77) 构成应用阳极，C (67) + C++ (54) 构成系统阴极，Go (36) + Rust (26) 代表现代中极。
-
-**幂律分布**：头部 5 类占总量 22%，Programming Language (41篇) 和 Game (34篇) 分别代表 "理解力的极限测试" 与 "创造力的终极表达"。
-
-**趋势信号**：Rust 在系统编程和 WebAssembly 领域持续增长，Zig 作为新挑战者进入视野。
+完整分析见 [深度研究报告](docs/research-report-v2.md)。
 
 ## 快速开始
 
-打开 `index.html` 即可浏览所有项目。在线访问：[GitHub Pages](https://hongxin.github.io/build-your-own-x/)
+```bash
+# 克隆仓库
+git clone https://github.com/hongxin/build-your-own-x.git
 
-## 方法论
+# 用浏览器打开着陆页
+open build-your-own-x/index.html
+```
 
-- **数据来源**：`codecrafters-io/build-your-own-x` README.md（2026-02-25 获取）
-- **映射原则**：基于技术类别的核心属性（底层/应用、静态/动态、面向机器/面向用户）归类，非机械对应
-- **评分标准**：10 分制主观评分，基于领域教程的整体特征和技术要求
+或直接访问 [在线版本](https://hongxin.github.io/build-your-own-x/)。
 
 ---
 
