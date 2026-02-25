@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZPower 太极八卦图 — 从零到极</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'Noto Serif SC', 'SimSun', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    margin-top: 24px;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: #f0c674;
+    text-shadow: 0 0 20px rgba(240,198,116,0.3);
+  }
+
+  h1 small {
+    display: block;
+    font-size: 14px;
+    font-weight: 400;
+    color: #8b949e;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  #canvas-wrap {
+    position: relative;
+    margin-top: 16px;
+  }
+
+  canvas {
+    display: block;
+    cursor: default;
+  }
+
+  /* Detail Panel */
+  #detail-panel {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 32px;
+    min-width: 360px;
+    max-width: 480px;
+    z-index: 100;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  #detail-panel .close-btn {
+    position: absolute; top: 12px; right: 16px;
+    background: none; border: none; color: #8b949e;
+    font-size: 20px; cursor: pointer;
+  }
+  #detail-panel .close-btn:hover { color: #e6edf3; }
+
+  #detail-panel h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  #detail-panel .element-tag {
+    font-size: 13px;
+    color: #8b949e;
+    margin-bottom: 16px;
+  }
+
+  #detail-panel .insight {
+    font-size: 14px;
+    color: #c9d1d9;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    border-left: 3px solid #f0c674;
+    padding-left: 12px;
+  }
+
+  .wude-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .wude-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .wude-item .bar-wrap {
+    height: 60px;
+    background: #21262d;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wude-item .bar-fill {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    border-radius: 4px;
+    transition: height 0.5s ease;
+  }
+
+  .wude-item .label {
+    font-size: 12px;
+    margin-top: 4px;
+    color: #8b949e;
+  }
+
+  .wude-item .score {
+    font-size: 11px;
+    color: #f0c674;
+  }
+
+  .categories-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .cat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #21262d;
+    font-size: 13px;
+  }
+
+  .cat-item .cat-name { color: #c9d1d9; }
+  .cat-item .cat-count {
+    background: #21262d;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: #8b949e;
+  }
+
+  .cat-item .cat-langs {
+    font-size: 11px;
+    color: #6e7681;
+    margin-top: 2px;
+  }
+
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+
+  .legend {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 12px;
+    color: #8b949e;
+    margin-bottom: 24px;
+  }
+
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .legend .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<h1>ZPower 太极八卦图<small>从零到极 — 五行生克 · 八卦映射 · Build Your Own X</small></h1>
+
+<div id="canvas-wrap">
+  <canvas id="taiji-canvas"></canvas>
+</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#4A90D9"></span>水·z-observe</span>
+  <span><span class="dot" style="background:#5CB85C"></span>木·z-design</span>
+  <span><span class="dot" style="background:#D9534F"></span>火·z-build</span>
+  <span><span class="dot" style="background:#F0AD4E"></span>土·z-verify</span>
+  <span><span class="dot" style="background:#C0C0C0"></span>金·z-evolve</span>
+</div>
+
+<div id="overlay"></div>
+<div id="detail-panel">
+  <button class="close-btn" id="close-panel">&times;</button>
+  <h2 id="panel-title"></h2>
+  <div class="element-tag" id="panel-element"></div>
+  <div class="insight" id="panel-insight"></div>
+  <div class="wude-bar" id="panel-wude"></div>
+  <div class="categories-list" id="panel-categories"></div>
+</div>
+
+<script>
+// ── Data Loading ──────────────────────────────────────────────
+let baguaData = [];
+
+async function loadData() {
+  try {
+    const resp = await fetch('skill-tree-data.json');
+    const data = await resp.json();
+    baguaData = data.bagua;
+  } catch (e) {
+    console.warn('Failed to load skill-tree-data.json, using embedded fallback');
+    // Minimal fallback
+    baguaData = [
+      { id:'qian', symbol:'☰', name:'乾', element:'天/创生', color:'#FFD700', insight:'编程语言与正则', categories:[], wude:{dao:9,de:7,ren:5,yi:8,li:9} },
+      { id:'kun', symbol:'☷', name:'坤', element:'地/承载', color:'#8B6914', insight:'操作系统与底层', categories:[], wude:{dao:10,de:8,ren:3,yi:9,li:7} },
+      { id:'kan', symbol:'☵', name:'坎', element:'水/流动', color:'#4169E1', insight:'网络与数据流', categories:[], wude:{dao:8,de:7,ren:7,yi:8,li:9} },
+      { id:'li',  symbol:'☲', name:'离', element:'火/照明', color:'#FF4500', insight:'渲染与视觉', categories:[], wude:{dao:6,de:7,ren:9,yi:6,li:7} },
+      { id:'zhen',symbol:'☳', name:'震', element:'雷/行动', color:'#9932CC', insight:'自动化与CLI', categories:[], wude:{dao:6,de:6,ren:8,yi:7,li:6} },
+      { id:'xun', symbol:'☴', name:'巽', element:'风/渗透', color:'#2E8B57', insight:'搜索与转换', categories:[], wude:{dao:7,de:7,ren:8,yi:7,li:6} },
+      { id:'gen', symbol:'☶', name:'艮', element:'山/静止', color:'#708090', insight:'数据库与存储', categories:[], wude:{dao:8,de:8,ren:5,yi:9,li:8} },
+      { id:'dui', symbol:'☱', name:'兑', element:'泽/智慧', color:'#00CED1', insight:'AI与神经网络', categories:[], wude:{dao:9,de:6,ren:7,yi:7,li:5} }
+    ];
+  }
+  init();
+}
+
+// ── Canvas Setup ──────────────────────────────────────────────
+const canvas = document.getElementById('taiji-canvas');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+const W = 720;
+canvas.width = W * dpr;
+canvas.height = W * dpr;
+canvas.style.width = W + 'px';
+canvas.style.height = W + 'px';
+ctx.scale(dpr, dpr);
+
+const CX = W / 2, CY = W / 2;
+const TAIJI_R = 70;
+const WUXING_R = 155;
+const BAGUA_R = 285;
+
+// ── State ─────────────────────────────────────────────────────
+let rotation = 0;
+let hoveredBagua = -1;
+let hoveredWuxing = -1;
+let mouseX = 0, mouseY = 0;
+
+// ── Five Elements Data ────────────────────────────────────────
+const wuxing = [
+  { name: '水', skill: 'z-observe', label: '观', color: '#4A90D9', angle: -Math.PI/2 },
+  { name: '木', skill: 'z-design',  label: '谋', color: '#5CB85C', angle: -Math.PI/2 + 2*Math.PI/5 },
+  { name: '火', skill: 'z-build',   label: '行', color: '#D9534F', angle: -Math.PI/2 + 4*Math.PI/5 },
+  { name: '土', skill: 'z-verify',  label: '验', color: '#F0AD4E', angle: -Math.PI/2 + 6*Math.PI/5 },
+  { name: '金', skill: 'z-evolve',  label: '化', color: '#C0C0C0', angle: -Math.PI/2 + 8*Math.PI/5 },
+];
+
+// 后天八卦方位 (South at top in traditional Chinese compass)
+// 离南 坎北 震东 兑西 巽东南 乾西北 艮东北 坤西南
+const baguaPositions = [
+  { id: 'li',   angle: -Math.PI/2 },          // S (top)
+  { id: 'kun',  angle: -Math.PI/2 + Math.PI/4 },   // SW
+  { id: 'dui',  angle: -Math.PI/2 + Math.PI/2 },   // W
+  { id: 'qian', angle: -Math.PI/2 + 3*Math.PI/4 }, // NW
+  { id: 'kan',  angle: -Math.PI/2 + Math.PI },      // N (bottom)
+  { id: 'gen',  angle: -Math.PI/2 + 5*Math.PI/4 },  // NE
+  { id: 'zhen', angle: -Math.PI/2 + 3*Math.PI/2 },  // E
+  { id: 'xun',  angle: -Math.PI/2 + 7*Math.PI/4 },  // SE
+];
+
+// ── Drawing Functions ─────────────────────────────────────────
+
+function drawTaiji(cx, cy, r, rot) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+
+  // Outer circle
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // White half (right)
+  ctx.beginPath();
+  ctx.arc(0, 0, r, -Math.PI/2, Math.PI/2);
+  ctx.fillStyle = '#e8e8e8';
+  ctx.fill();
+
+  // Black half (left)
+  ctx.beginPath();
+  ctx.arc(0, 0, r, Math.PI/2, -Math.PI/2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+
+  // White small semicircle (top)
+  ctx.beginPath();
+  ctx.arc(0, -r/2, r/2, -Math.PI/2, Math.PI/2);
+  ctx.fillStyle = '#e8e8e8';
+  ctx.fill();
+
+  // Black small semicircle (bottom)
+  ctx.beginPath();
+  ctx.arc(0, r/2, r/2, Math.PI/2, -Math.PI/2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+
+  // Black eye (in white area, top)
+  ctx.beginPath();
+  ctx.arc(0, -r/2, r/7, 0, Math.PI*2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+
+  // White eye (in black area, bottom)
+  ctx.beginPath();
+  ctx.arc(0, r/2, r/7, 0, Math.PI*2);
+  ctx.fillStyle = '#e8e8e8';
+  ctx.fill();
+
+  // Outer ring glow
+  ctx.beginPath();
+  ctx.arc(0, 0, r + 3, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(240,198,116,0.25)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawWuxingRing() {
+  const nodeR = 24;
+
+  // Draw shengke (generating) arrows first
+  for (let i = 0; i < 5; i++) {
+    const from = wuxing[i];
+    const to = wuxing[(i + 1) % 5];
+    const fx = CX + Math.cos(from.angle) * WUXING_R;
+    const fy = CY + Math.sin(from.angle) * WUXING_R;
+    const tx = CX + Math.cos(to.angle) * WUXING_R;
+    const ty = CY + Math.sin(to.angle) * WUXING_R;
+
+    // Shorten arrow to not overlap nodes
+    const dx = tx - fx, dy = ty - fy;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx/len, uy = dy/len;
+    const sx = fx + ux * (nodeR + 4);
+    const sy = fy + uy * (nodeR + 4);
+    const ex = tx - ux * (nodeR + 8);
+    const ey = ty - uy * (nodeR + 8);
+
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = 'rgba(240,198,116,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Arrowhead
+    const aLen = 8;
+    const aAngle = Math.atan2(ey - sy, ex - sx);
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - aLen * Math.cos(aAngle - 0.4), ey - aLen * Math.sin(aAngle - 0.4));
+    ctx.lineTo(ex - aLen * Math.cos(aAngle + 0.4), ey - aLen * Math.sin(aAngle + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(240,198,116,0.5)';
+    ctx.fill();
+  }
+
+  // Draw nodes
+  for (let i = 0; i < 5; i++) {
+    const w = wuxing[i];
+    const x = CX + Math.cos(w.angle) * WUXING_R;
+    const y = CY + Math.sin(w.angle) * WUXING_R;
+    const isHovered = i === hoveredWuxing;
+
+    // Glow
+    if (isHovered) {
+      ctx.beginPath();
+      ctx.arc(x, y, nodeR + 8, 0, Math.PI*2);
+      const glow = ctx.createRadialGradient(x, y, nodeR, x, y, nodeR + 12);
+      glow.addColorStop(0, w.color + '66');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(x, y, nodeR, 0, Math.PI * 2);
+    ctx.fillStyle = isHovered ? w.color : w.color + '33';
+    ctx.fill();
+    ctx.strokeStyle = w.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = isHovered ? '#fff' : w.color;
+    ctx.font = 'bold 14px "Noto Serif SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(w.label + '·' + w.name, x, y - 3);
+
+    // Skill name
+    ctx.fillStyle = isHovered ? '#ddd' : '#8b949e';
+    ctx.font = '9px monospace';
+    ctx.fillText(w.skill, x, y + 12);
+  }
+}
+
+function drawBaguaRing() {
+  const nodeR = 38;
+
+  for (let i = 0; i < 8; i++) {
+    const pos = baguaPositions[i];
+    const gua = baguaData.find(b => b.id === pos.id);
+    if (!gua) continue;
+
+    const x = CX + Math.cos(pos.angle) * BAGUA_R;
+    const y = CY + Math.sin(pos.angle) * BAGUA_R;
+    const isHovered = i === hoveredBagua;
+    const totalTuts = gua.categories.reduce((s, c) => s + c.count, 0);
+
+    // Glow on hover
+    if (isHovered) {
+      ctx.beginPath();
+      ctx.arc(x, y, nodeR + 10, 0, Math.PI*2);
+      const glow = ctx.createRadialGradient(x, y, nodeR, x, y, nodeR + 14);
+      glow.addColorStop(0, gua.color + '55');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
+    // Hex background
+    ctx.beginPath();
+    for (let h = 0; h < 6; h++) {
+      const ha = h * Math.PI / 3 - Math.PI / 6;
+      const hx = x + nodeR * Math.cos(ha);
+      const hy = y + nodeR * Math.sin(ha);
+      h === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = isHovered ? gua.color + '33' : '#161b2288';
+    ctx.fill();
+    ctx.strokeStyle = isHovered ? gua.color : gua.color + '66';
+    ctx.lineWidth = isHovered ? 2 : 1;
+    ctx.stroke();
+
+    // Trigram symbol
+    ctx.fillStyle = gua.color;
+    ctx.font = '22px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(gua.symbol, x, y - 12);
+
+    // Name
+    ctx.fillStyle = isHovered ? '#fff' : '#c9d1d9';
+    ctx.font = 'bold 13px "Noto Serif SC", serif';
+    ctx.fillText(gua.name, x, y + 6);
+
+    // Tutorial count
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '10px monospace';
+    ctx.fillText(totalTuts + ' tutorials', x, y + 21);
+  }
+}
+
+function drawConnectingRings() {
+  // Faint ring between wuxing and bagua
+  ctx.beginPath();
+  ctx.arc(CX, CY, (WUXING_R + BAGUA_R) / 2, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(48,54,61,0.4)';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Inner ring around taiji
+  ctx.beginPath();
+  ctx.arc(CX, CY, TAIJI_R + 20, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(240,198,116,0.1)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawTitle() {
+  // Center label below taiji
+  ctx.fillStyle = 'rgba(240,198,116,0.6)';
+  ctx.font = '11px "Noto Serif SC", serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ZPower', CX, CY + TAIJI_R + 14);
+}
+
+// ── Hit Testing ───────────────────────────────────────────────
+
+function hitTestBagua(mx, my) {
+  const nodeR = 38;
+  for (let i = 0; i < 8; i++) {
+    const pos = baguaPositions[i];
+    const x = CX + Math.cos(pos.angle) * BAGUA_R;
+    const y = CY + Math.sin(pos.angle) * BAGUA_R;
+    const dx = mx - x, dy = my - y;
+    if (dx*dx + dy*dy < nodeR * nodeR) return i;
+  }
+  return -1;
+}
+
+function hitTestWuxing(mx, my) {
+  const nodeR = 24;
+  for (let i = 0; i < 5; i++) {
+    const w = wuxing[i];
+    const x = CX + Math.cos(w.angle) * WUXING_R;
+    const y = CY + Math.sin(w.angle) * WUXING_R;
+    const dx = mx - x, dy = my - y;
+    if (dx*dx + dy*dy < nodeR * nodeR) return i;
+  }
+  return -1;
+}
+
+// ── Detail Panel ──────────────────────────────────────────────
+
+function showPanel(guaIndex) {
+  const pos = baguaPositions[guaIndex];
+  const gua = baguaData.find(b => b.id === pos.id);
+  if (!gua) return;
+
+  document.getElementById('panel-title').textContent = gua.symbol + ' ' + gua.name;
+  document.getElementById('panel-title').style.color = gua.color;
+  document.getElementById('panel-element').textContent = gua.element;
+  document.getElementById('panel-insight').textContent = gua.insight;
+
+  // Wude bars
+  const wudeNames = { dao: '道', de: '德', ren: '仁', yi: '义', li: '礼' };
+  const wudeColors = { dao: '#f0c674', de: '#5CB85C', ren: '#D9534F', yi: '#4A90D9', li: '#C0C0C0' };
+  const wudeHtml = Object.entries(gua.wude).map(([k, v]) =>
+    `<div class="wude-item">
+      <div class="bar-wrap">
+        <div class="bar-fill" style="height:${v*10}%;background:${wudeColors[k]}44;border:1px solid ${wudeColors[k]}"></div>
+      </div>
+      <div class="label">${wudeNames[k]}</div>
+      <div class="score">${v}/10</div>
+    </div>`
+  ).join('');
+  document.getElementById('panel-wude').innerHTML = wudeHtml;
+
+  // Categories
+  const catHtml = gua.categories.map(c =>
+    `<div class="cat-item">
+      <div>
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-langs">${c.languages.slice(0, 5).join(', ')}${c.languages.length > 5 ? '...' : ''}</div>
+      </div>
+      <span class="cat-count">${c.count} 篇</span>
+    </div>`
+  ).join('');
+  document.getElementById('panel-categories').innerHTML = catHtml;
+
+  document.getElementById('detail-panel').style.display = 'block';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function hidePanel() {
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+}
+
+document.getElementById('close-panel').addEventListener('click', hidePanel);
+document.getElementById('overlay').addEventListener('click', hidePanel);
+
+// ── Events ────────────────────────────────────────────────────
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+
+  const newBagua = hitTestBagua(mouseX, mouseY);
+  const newWuxing = hitTestWuxing(mouseX, mouseY);
+
+  hoveredBagua = newBagua;
+  hoveredWuxing = newWuxing;
+
+  canvas.style.cursor = (newBagua >= 0 || newWuxing >= 0) ? 'pointer' : 'default';
+});
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const idx = hitTestBagua(mx, my);
+  if (idx >= 0) showPanel(idx);
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredBagua = -1;
+  hoveredWuxing = -1;
+  canvas.style.cursor = 'default';
+});
+
+// ── Animation Loop ────────────────────────────────────────────
+
+function draw() {
+  ctx.clearRect(0, 0, W, W);
+
+  // Background subtle radial gradient
+  const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, W/2);
+  bg.addColorStop(0, '#161b22');
+  bg.addColorStop(1, '#0d1117');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, W);
+
+  drawConnectingRings();
+  drawBaguaRing();
+  drawWuxingRing();
+  drawTaiji(CX, CY, TAIJI_R, rotation);
+  drawTitle();
+
+  rotation += 0.003;
+  requestAnimationFrame(draw);
+}
+
+function init() {
+  draw();
+}
+
+// ── Start ─────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

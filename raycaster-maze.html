@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZPower Demo — 从零造 3D 迷宫 (Raycasting)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: 'Courier New', monospace;
+    color: #e6edf3;
+    overflow: hidden;
+    user-select: none;
+  }
+  canvas { display: block; image-rendering: pixelated; }
+  #game { position: relative; }
+  #minimap {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border: 1px solid rgba(240,198,116,0.4);
+    border-radius: 4px;
+    opacity: 0.85;
+  }
+  #hud {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: rgba(240,198,116,0.7);
+    text-align: center;
+    pointer-events: none;
+  }
+  #title-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.85);
+    z-index: 10;
+    transition: opacity 0.6s;
+  }
+  #title-overlay h1 {
+    font-size: 36px;
+    color: #f0c674;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(240,198,116,0.4);
+  }
+  #title-overlay p {
+    font-size: 14px;
+    color: #8b949e;
+    margin-bottom: 24px;
+  }
+  #title-overlay .start-hint {
+    font-size: 16px;
+    color: #c9d1d9;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  #title-overlay .tech-note {
+    margin-top: 32px;
+    font-size: 11px;
+    color: #6e7681;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  #crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    font-size: 20px;
+    color: rgba(240,198,116,0.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <canvas id="view"></canvas>
+  <canvas id="minimap"></canvas>
+  <div id="crosshair">+</div>
+  <div id="hud">
+    <span id="fps-display"></span> |
+    <span id="pos-display"></span> |
+    ESC 释放鼠标 · M 切换地图
+  </div>
+  <div id="title-overlay">
+    <h1>从零造 3D</h1>
+    <p>Build Your Own Raycaster — ZPower Demo</p>
+    <div class="start-hint">点击任意位置开始</div>
+    <div class="tech-note">
+      这个 3D 迷宫使用 Raycasting（光线投射）技术从零实现<br>
+      与 1992 年 Wolfenstein 3D 同源——无需 WebGL，仅用 Canvas 2D<br>
+      每根光线从玩家出发，碰到墙壁后计算距离，画出对应高度的墙面柱<br>
+      <br>
+      WASD 移动 · 鼠标转向 · 一个文件，零依赖
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 第1步：地图与常量（骨架）
+// ═══════════════════════════════════════════════════════════════
+
+const MAP = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,0,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,0,0,0,0,0,0,1,0,0,1,0,1],
+  [1,0,1,0,1,1,1,1,0,0,1,0,0,0,0,1],
+  [1,0,0,0,0,0,0,1,0,0,0,0,1,1,0,1],
+  [1,0,1,1,1,0,0,1,1,1,0,0,1,0,0,1],
+  [1,0,0,0,1,0,0,0,0,1,0,0,1,0,1,1],
+  [1,1,1,0,1,0,1,1,0,1,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,1,0,0,0,1,1,0,0,1],
+  [1,0,1,1,0,1,0,1,1,0,0,1,0,0,0,1],
+  [1,0,0,1,0,1,0,0,0,0,0,1,0,1,0,1],
+  [1,0,0,1,0,1,1,1,0,1,0,0,0,1,0,1],
+  [1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1],
+  [1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+
+const MAP_W = MAP[0].length;
+const MAP_H = MAP.length;
+const TILE = 1; // each tile = 1 unit
+
+// Wall colors per wall type (expandable)
+const WALL_COLORS = {
+  1: { r: 140, g: 80, b: 60 },  // warm brick
+};
+
+// View config
+const VIEW_W = 640;
+const VIEW_H = 400;
+const FOV = Math.PI / 3; // 60 degrees
+const NUM_RAYS = VIEW_W;
+const MAX_DIST = 20;
+
+// Minimap
+const MM_SCALE = 6;
+const MM_W = MAP_W * MM_SCALE;
+const MM_H = MAP_H * MM_SCALE;
+
+// ═══════════════════════════════════════════════════════════════
+// 第2步：Canvas 设置
+// ═══════════════════════════════════════════════════════════════
+
+const viewCanvas = document.getElementById('view');
+const viewCtx = viewCanvas.getContext('2d');
+viewCanvas.width = VIEW_W;
+viewCanvas.height = VIEW_H;
+
+const mmCanvas = document.getElementById('minimap');
+const mmCtx = mmCanvas.getContext('2d');
+mmCanvas.width = MM_W;
+mmCanvas.height = MM_H;
+
+// ImageData for fast pixel rendering
+const imageData = viewCtx.createImageData(VIEW_W, VIEW_H);
+const pixels = imageData.data;
+
+// ═══════════════════════════════════════════════════════════════
+// 第3步：玩家状态
+// ═══════════════════════════════════════════════════════════════
+
+const player = {
+  x: 1.5,
+  y: 1.5,
+  angle: 0,
+  speed: 2.5,
+  rotSpeed: 2.0,
+};
+
+// Input state
+const keys = {};
+let showMinimap = true;
+let gameStarted = false;
+let pointerLocked = false;
+
+// ═══════════════════════════════════════════════════════════════
+// 第4步：Raycasting 引擎核心（光线投射）
+// ═══════════════════════════════════════════════════════════════
+
+function castRay(px, py, angle) {
+  const sin = Math.sin(angle);
+  const cos = Math.cos(angle);
+
+  // DDA algorithm (Digital Differential Analyzer)
+  const stepX = cos >= 0 ? 1 : -1;
+  const stepY = sin >= 0 ? 1 : -1;
+
+  let mapX = Math.floor(px);
+  let mapY = Math.floor(py);
+
+  // Distance to next grid line
+  let tMaxX = cos >= 0 ? (mapX + 1 - px) / cos : (mapX - px) / cos;
+  let tMaxY = sin >= 0 ? (mapY + 1 - py) / sin : (mapY - py) / sin;
+
+  const tDeltaX = Math.abs(1 / cos);
+  const tDeltaY = Math.abs(1 / sin);
+
+  let side = 0; // 0 = vertical wall (x-side), 1 = horizontal wall (y-side)
+  let dist = 0;
+
+  // March ray through grid
+  for (let i = 0; i < 64; i++) {
+    if (tMaxX < tMaxY) {
+      dist = tMaxX;
+      tMaxX += tDeltaX;
+      mapX += stepX;
+      side = 0;
+    } else {
+      dist = tMaxY;
+      tMaxY += tDeltaY;
+      mapY += stepY;
+      side = 1;
+    }
+
+    if (mapX < 0 || mapX >= MAP_W || mapY < 0 || mapY >= MAP_H) break;
+
+    if (MAP[mapY][mapX] > 0) {
+      return { dist, side, mapX, mapY, wallType: MAP[mapY][mapX] };
+    }
+  }
+
+  return { dist: MAX_DIST, side: 0, mapX: 0, mapY: 0, wallType: 0 };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 第5步：渲染 — 墙面 + 地板 + 天花板
+// ═══════════════════════════════════════════════════════════════
+
+function render() {
+  const halfH = VIEW_H / 2;
+
+  for (let col = 0; col < NUM_RAYS; col++) {
+    const rayAngle = player.angle - FOV / 2 + (col / NUM_RAYS) * FOV;
+    const hit = castRay(player.x, player.y, rayAngle);
+
+    // Fix fisheye distortion
+    const correctedDist = hit.dist * Math.cos(rayAngle - player.angle);
+
+    // Wall height
+    const wallH = Math.min(VIEW_H * 2, VIEW_H / correctedDist);
+    const wallTop = Math.floor(halfH - wallH / 2);
+    const wallBottom = Math.ceil(halfH + wallH / 2);
+
+    // Base wall color
+    const wc = WALL_COLORS[hit.wallType] || { r: 100, g: 100, b: 100 };
+
+    // Shading: side darkening + distance fog
+    const sideMul = hit.side === 1 ? 0.7 : 1.0;
+    const fogMul = Math.max(0, 1 - correctedDist / MAX_DIST);
+    const shade = sideMul * fogMul;
+
+    const wr = Math.floor(wc.r * shade);
+    const wg = Math.floor(wc.g * shade);
+    const wb = Math.floor(wc.b * shade);
+
+    for (let row = 0; row < VIEW_H; row++) {
+      const idx = (row * VIEW_W + col) * 4;
+
+      if (row < wallTop) {
+        // Ceiling — dark blue gradient
+        const ceilRatio = 1 - row / halfH;
+        const ci = Math.floor(ceilRatio * 30);
+        pixels[idx]     = ci * 0.3;
+        pixels[idx + 1] = ci * 0.3;
+        pixels[idx + 2] = ci;
+        pixels[idx + 3] = 255;
+      } else if (row < wallBottom) {
+        // Wall
+        pixels[idx]     = wr;
+        pixels[idx + 1] = wg;
+        pixels[idx + 2] = wb;
+        pixels[idx + 3] = 255;
+      } else {
+        // Floor — dark green/brown gradient
+        const floorRatio = (row - halfH) / halfH;
+        const fi = Math.floor(floorRatio * 40);
+        pixels[idx]     = fi * 0.4;
+        pixels[idx + 1] = fi * 0.5;
+        pixels[idx + 2] = fi * 0.2;
+        pixels[idx + 3] = 255;
+      }
+    }
+  }
+
+  viewCtx.putImageData(imageData, 0, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 第6步：小地图 HUD
+// ═══════════════════════════════════════════════════════════════
+
+function renderMinimap() {
+  if (!showMinimap) {
+    mmCanvas.style.display = 'none';
+    return;
+  }
+  mmCanvas.style.display = 'block';
+  mmCtx.fillStyle = 'rgba(13,17,23,0.9)';
+  mmCtx.fillRect(0, 0, MM_W, MM_H);
+
+  // Draw map tiles
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      if (MAP[y][x] > 0) {
+        mmCtx.fillStyle = 'rgba(140,80,60,0.6)';
+        mmCtx.fillRect(x * MM_SCALE, y * MM_SCALE, MM_SCALE, MM_SCALE);
+      }
+    }
+  }
+
+  // Draw player
+  const px = player.x * MM_SCALE;
+  const py = player.y * MM_SCALE;
+
+  mmCtx.fillStyle = '#f0c674';
+  mmCtx.beginPath();
+  mmCtx.arc(px, py, 2.5, 0, Math.PI * 2);
+  mmCtx.fill();
+
+  // Draw FOV cone
+  const rayLen = 15;
+  mmCtx.strokeStyle = 'rgba(240,198,116,0.3)';
+  mmCtx.lineWidth = 0.5;
+  mmCtx.beginPath();
+  mmCtx.moveTo(px, py);
+  mmCtx.lineTo(px + Math.cos(player.angle - FOV/2) * rayLen, py + Math.sin(player.angle - FOV/2) * rayLen);
+  mmCtx.moveTo(px, py);
+  mmCtx.lineTo(px + Math.cos(player.angle + FOV/2) * rayLen, py + Math.sin(player.angle + FOV/2) * rayLen);
+  mmCtx.stroke();
+
+  // Direction line
+  mmCtx.strokeStyle = '#f0c674';
+  mmCtx.lineWidth = 1;
+  mmCtx.beginPath();
+  mmCtx.moveTo(px, py);
+  mmCtx.lineTo(px + Math.cos(player.angle) * 8, py + Math.sin(player.angle) * 8);
+  mmCtx.stroke();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 第7步：玩家移动 + 碰撞检测
+// ═══════════════════════════════════════════════════════════════
+
+function isWall(x, y) {
+  const mx = Math.floor(x);
+  const my = Math.floor(y);
+  if (mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return true;
+  return MAP[my][mx] > 0;
+}
+
+function update(dt) {
+  const moveSpeed = player.speed * dt;
+  const margin = 0.15; // collision margin
+
+  // Rotation (arrow keys fallback)
+  if (keys['ArrowLeft'])  player.angle -= player.rotSpeed * dt;
+  if (keys['ArrowRight']) player.angle += player.rotSpeed * dt;
+
+  // Movement
+  let dx = 0, dy = 0;
+  const cos = Math.cos(player.angle);
+  const sin = Math.sin(player.angle);
+
+  if (keys['w'] || keys['ArrowUp'])    { dx += cos; dy += sin; }
+  if (keys['s'] || keys['ArrowDown'])   { dx -= cos; dy -= sin; }
+  if (keys['a'])                        { dx += sin; dy -= cos; }
+  if (keys['d'])                        { dx -= sin; dy += cos; }
+
+  // Normalize diagonal movement
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len > 0) {
+    dx = (dx / len) * moveSpeed;
+    dy = (dy / len) * moveSpeed;
+
+    // Slide along walls (check X and Y independently)
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+
+    if (!isWall(nx + margin * Math.sign(dx), player.y) &&
+        !isWall(nx - margin * Math.sign(dx), player.y)) {
+      player.x = nx;
+    }
+    if (!isWall(player.x, ny + margin * Math.sign(dy)) &&
+        !isWall(player.x, ny - margin * Math.sign(dy))) {
+      player.y = ny;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 第8步：输入处理
+// ═══════════════════════════════════════════════════════════════
+
+document.addEventListener('keydown', (e) => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key.toLowerCase() === 'm') showMinimap = !showMinimap;
+});
+
+document.addEventListener('keyup', (e) => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+// Mouse look via Pointer Lock
+document.addEventListener('mousemove', (e) => {
+  if (!pointerLocked) return;
+  player.angle += e.movementX * 0.002;
+});
+
+document.addEventListener('pointerlockchange', () => {
+  pointerLocked = document.pointerLockElement === viewCanvas;
+});
+
+// Start game on click
+const titleOverlay = document.getElementById('title-overlay');
+titleOverlay.addEventListener('click', () => {
+  gameStarted = true;
+  titleOverlay.style.opacity = '0';
+  setTimeout(() => titleOverlay.style.display = 'none', 600);
+  viewCanvas.requestPointerLock();
+});
+
+viewCanvas.addEventListener('click', () => {
+  if (gameStarted && !pointerLocked) {
+    viewCanvas.requestPointerLock();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 第9步：游戏主循环
+// ═══════════════════════════════════════════════════════════════
+
+let lastTime = 0;
+let frameCount = 0;
+let fpsTime = 0;
+let fpsDisplay = 0;
+
+function gameLoop(time) {
+  const dt = Math.min((time - lastTime) / 1000, 0.05);
+  lastTime = time;
+
+  // FPS counter
+  frameCount++;
+  fpsTime += dt;
+  if (fpsTime >= 0.5) {
+    fpsDisplay = Math.round(frameCount / fpsTime);
+    frameCount = 0;
+    fpsTime = 0;
+  }
+
+  if (gameStarted) {
+    update(dt);
+    render();
+    renderMinimap();
+
+    document.getElementById('fps-display').textContent = fpsDisplay + ' FPS';
+    document.getElementById('pos-display').textContent =
+      '(' + player.x.toFixed(1) + ', ' + player.y.toFixed(1) + ')';
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

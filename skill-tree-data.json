@@ -1,0 +1,595 @@
+{
+  "meta": {
+    "title": "Build Your Own X - 技能树数据",
+    "source": "https://github.com/codecrafters-io/build-your-own-x",
+    "stars": "469K+",
+    "totalTutorials": 590,
+    "totalCategories": 31,
+    "totalLanguages": 37,
+    "framework": "八卦映射 + 素书五德",
+    "generatedDate": "2026-02-25",
+    "note": "教程计数基于 README.md 主要分类（不含 Uncategorized 62篇）"
+  },
+
+  "bagua": [
+    {
+      "id": "qian",
+      "symbol": "☰",
+      "name": "乾",
+      "element": "天/创生",
+      "color": "#FFD700",
+      "insight": "定义数字世界的规则——编程语言是造物之始，正则是模式之源",
+      "categories": [
+        {
+          "name": "Programming Language",
+          "count": 41,
+          "difficulty": 4,
+          "foundationLevel": 5,
+          "languages": ["C", "C++", "Python", "JavaScript", "Haskell", "Go", "Java", "Ruby", "Rust", "F#", "OCaml", "Racket", "Swift", "TypeScript", "Pascal", "Elixir"],
+          "tutorials": [
+            {"title": "mal - Make a Lisp", "lang": "Any", "url": "https://github.com/kanaka/mal"},
+            {"title": "Build Your Own Lisp", "lang": "C", "url": "http://www.buildyourownlisp.com/"},
+            {"title": "Crafting Interpreters", "lang": "Java", "url": "http://www.craftinginterpreters.com/"},
+            {"title": "The Super Tiny Compiler", "lang": "JavaScript", "url": "https://github.com/jamiebuilds/the-super-tiny-compiler"},
+            {"title": "Let's Build A Simple Interpreter", "lang": "Python", "url": "https://ruslanspivak.com/lsbasi-part1/"},
+            {"title": "Write Yourself a Scheme in 48 Hours", "lang": "Haskell", "url": "https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours"},
+            {"title": "Kaleidoscope: Implementing a Language with LLVM", "lang": "C++", "url": "https://llvm.org/docs/tutorial/"},
+            {"title": "A journey explaining how to build a compiler from scratch", "lang": "C", "url": "https://github.com/DoctorWkt/acwj"},
+            {"title": "Beautiful Racket", "lang": "Racket", "url": "https://beautifulracket.com/"},
+            {"title": "Learning Parser Combinators With Rust", "lang": "Rust", "url": "https://bodil.lol/parser-combinators/"}
+          ]
+        },
+        {
+          "name": "Regex Engine",
+          "count": 9,
+          "difficulty": 3,
+          "foundationLevel": 4,
+          "languages": ["C", "Go", "JavaScript", "Perl", "Python", "Scala"],
+          "tutorials": [
+            {"title": "A Regular Expression Matcher", "lang": "C", "url": "https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html"},
+            {"title": "Regular Expression Matching Can Be Simple And Fast", "lang": "C", "url": "https://swtch.com/~rsc/regexp/regexp1.html"},
+            {"title": "Build a Regex Engine in Less than 40 Lines of Code", "lang": "JavaScript", "url": "https://nickdrane.com/build-your-own-regex/"},
+            {"title": "Build Your Own Regular Expression Engines", "lang": "Python", "url": "https://build-your-own.org/b2a/r0_intro"}
+          ]
+        }
+      ],
+      "wude": {"dao": 9, "de": 7, "ren": 5, "yi": 8, "li": 9}
+    },
+    {
+      "id": "kun",
+      "symbol": "☷",
+      "name": "坤",
+      "element": "地/承载",
+      "color": "#8B6914",
+      "insight": "一切软件的根基——操作系统承载万物，内存与处理器是计算的大地",
+      "categories": [
+        {
+          "name": "Operating System",
+          "count": 19,
+          "difficulty": 5,
+          "foundationLevel": 5,
+          "languages": ["Assembly", "C", "C++", "Rust"],
+          "tutorials": [
+            {"title": "Writing an OS in Rust", "lang": "Rust", "url": "https://os.phil-opp.com/"},
+            {"title": "Operating Systems: From 0 to 1", "lang": "C", "url": "https://tuhdo.github.io/os01/"},
+            {"title": "The little book about OS development", "lang": "C", "url": "https://littleosbook.github.io/"},
+            {"title": "How to create an OS from scratch", "lang": "C", "url": "https://github.com/cfenollosa/os-tutorial"},
+            {"title": "Linux from scratch", "lang": "Any", "url": "https://linuxfromscratch.org/lfs"}
+          ]
+        },
+        {
+          "name": "Memory Allocator",
+          "count": 1,
+          "difficulty": 5,
+          "foundationLevel": 5,
+          "languages": ["C"],
+          "tutorials": [
+            {"title": "Implementing your own memory allocator", "lang": "C", "url": "https://medium.com/p/e0354e914402"}
+          ]
+        },
+        {
+          "name": "Processor",
+          "count": 1,
+          "difficulty": 5,
+          "foundationLevel": 5,
+          "languages": ["Verilog"],
+          "tutorials": [
+            {"title": "From Blinker to RISC-V", "lang": "Verilog", "url": "https://github.com/BrunoLevy/learn-fpga"}
+          ]
+        }
+      ],
+      "wude": {"dao": 10, "de": 8, "ren": 3, "yi": 9, "li": 7}
+    },
+    {
+      "id": "kan",
+      "symbol": "☵",
+      "name": "坎",
+      "element": "水/流动",
+      "color": "#4169E1",
+      "insight": "数据如水，流通万物——网络、服务器、浏览器构成数字世界的河流",
+      "categories": [
+        {
+          "name": "Network Stack",
+          "count": 4,
+          "difficulty": 4,
+          "foundationLevel": 4,
+          "languages": ["C", "Python", "Ruby"],
+          "tutorials": [
+            {"title": "Beej's Guide to Network Programming", "lang": "C", "url": "http://beej.us/guide/bgnet/"},
+            {"title": "Let's code a TCP/IP stack", "lang": "C", "url": "http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/"},
+            {"title": "Build your own VPN/Virtual Switch", "lang": "C/Python", "url": "https://github.com/peiyuanix/build-your-own-zerotier"}
+          ]
+        },
+        {
+          "name": "Web Server",
+          "count": 11,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["C#", "Node.js", "PHP", "Python", "Ruby"],
+          "tutorials": [
+            {"title": "A Simple Web Server", "lang": "Python", "url": "http://aosabook.org/en/500L/a-simple-web-server.html"},
+            {"title": "Let's Build A Web Server", "lang": "Python", "url": "https://ruslanspivak.com/lsbaws-part1/"},
+            {"title": "Build Your Own Web Server From Scratch In JavaScript", "lang": "Node.js", "url": "https://build-your-own.org/webserver/"}
+          ]
+        },
+        {
+          "name": "Web Browser",
+          "count": 2,
+          "difficulty": 5,
+          "foundationLevel": 3,
+          "languages": ["Rust", "Python"],
+          "tutorials": [
+            {"title": "Let's build a browser engine", "lang": "Rust", "url": "https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html"},
+            {"title": "Browser Engineering", "lang": "Python", "url": "https://browser.engineering"}
+          ]
+        },
+        {
+          "name": "BitTorrent Client",
+          "count": 5,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["C#", "Go", "Nim", "Node.js", "Python"],
+          "tutorials": [
+            {"title": "Building a BitTorrent client from the ground up in Go", "lang": "Go", "url": "https://blog.jse.li/posts/torrent/"},
+            {"title": "A BitTorrent client in Python 3.5", "lang": "Python", "url": "http://markuseliasson.se/article/bittorrent-in-python/"}
+          ]
+        },
+        {
+          "name": "Distributed Systems",
+          "count": 1,
+          "difficulty": 5,
+          "foundationLevel": 4,
+          "languages": ["Java"],
+          "tutorials": [
+            {"title": "Building Your Own Kafka-like System", "lang": "Java", "url": "https://github.com/buildthingsuseful/build-your-own-kafka"}
+          ]
+        }
+      ],
+      "wude": {"dao": 8, "de": 7, "ren": 7, "yi": 8, "li": 9}
+    },
+    {
+      "id": "li",
+      "symbol": "☲",
+      "name": "离",
+      "element": "火/照明",
+      "color": "#FF4500",
+      "insight": "让不可见变为可见——渲染、游戏、前端，皆是火之照明",
+      "categories": [
+        {
+          "name": "3D Renderer",
+          "count": 11,
+          "difficulty": 4,
+          "foundationLevel": 3,
+          "languages": ["C++", "C#", "TypeScript", "JavaScript", "Java", "Python"],
+          "tutorials": [
+            {"title": "Ray Tracing in One Weekend", "lang": "C++", "url": "https://raytracing.github.io/books/RayTracingInOneWeekend.html"},
+            {"title": "How OpenGL works: software rendering in 500 lines of code", "lang": "C++", "url": "https://github.com/ssloy/tinyrenderer/wiki"},
+            {"title": "Computer Graphics from scratch", "lang": "JavaScript", "url": "http://www.gabrielgambetta.com/computer-graphics-from-scratch/introduction.html"}
+          ]
+        },
+        {
+          "name": "Game",
+          "count": 34,
+          "difficulty": 3,
+          "foundationLevel": 2,
+          "languages": ["C", "C++", "C#", "Go", "Java", "JavaScript", "Lua", "Python", "Ruby", "Rust"],
+          "tutorials": [
+            {"title": "Handmade Hero", "lang": "C", "url": "https://handmadehero.org/"},
+            {"title": "Roguelike Tutorial Revised", "lang": "Python", "url": "http://rogueliketutorials.com/"},
+            {"title": "Breakout", "lang": "C++", "url": "https://learnopengl.com/In-Practice/2D-Game/Breakout"},
+            {"title": "BYTEPATH", "lang": "Lua", "url": "https://github.com/SSYGEN/blog/issues/30"},
+            {"title": "Adventures in Rust: A Basic 2D Game", "lang": "Rust", "url": "https://a5huynh.github.io/posts/2018/adventures-in-rust/"}
+          ]
+        },
+        {
+          "name": "Front-end Framework",
+          "count": 14,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["JavaScript"],
+          "tutorials": [
+            {"title": "Build your own React", "lang": "JavaScript", "url": "https://pomb.us/build-your-own-react/"},
+            {"title": "Build Yourself a Redux", "lang": "JavaScript", "url": "https://zapier.com/engineering/how-to-build-redux/"},
+            {"title": "Build Your own Simplified AngularJS", "lang": "JavaScript", "url": "https://blog.mgechev.com/2015/03/09/build-learn-your-own-light-lightweight-angularjs/"},
+            {"title": "How to write your own Virtual DOM", "lang": "JavaScript", "url": "https://medium.com/@deathmood/how-to-write-your-own-virtual-dom-ee74acc13060"}
+          ]
+        },
+        {
+          "name": "Augmented Reality",
+          "count": 6,
+          "difficulty": 3,
+          "foundationLevel": 2,
+          "languages": ["C#", "Python"],
+          "tutorials": [
+            {"title": "Augmented Reality with Python and OpenCV", "lang": "Python", "url": "https://bitesofcode.wordpress.com/2017/09/12/augmented-reality-with-python-and-opencv-part-1/"},
+            {"title": "AR Portal Tutorial with Unity", "lang": "C#", "url": "https://www.youtube.com/playlist?list=PLPCqNOwwN794Gz5fzUSi1p4OqLU0HTmvn"}
+          ]
+        },
+        {
+          "name": "Voxel Engine",
+          "count": 1,
+          "difficulty": 4,
+          "foundationLevel": 3,
+          "languages": ["C++"],
+          "tutorials": [
+            {"title": "Let's Make a Voxel Engine", "lang": "C++", "url": "https://sites.google.com/site/letsmakeavoxelengine/home"}
+          ]
+        }
+      ],
+      "wude": {"dao": 6, "de": 7, "ren": 9, "yi": 6, "li": 7}
+    },
+    {
+      "id": "zhen",
+      "symbol": "☳",
+      "name": "震",
+      "element": "雷/行动",
+      "color": "#9932CC",
+      "insight": "驱动执行的力量——Bot自动化、CLI直接行动、Shell掌控、Docker封装",
+      "categories": [
+        {
+          "name": "Bot",
+          "count": 15,
+          "difficulty": 2,
+          "foundationLevel": 2,
+          "languages": ["Haskell", "Node.js", "Python", "R", "Rust"],
+          "tutorials": [
+            {"title": "How to Build Your First Slack Bot with Python", "lang": "Python", "url": "https://www.fullstackpython.com/blog/build-first-slack-bot-python.html"},
+            {"title": "Create a Discord bot", "lang": "Node.js", "url": "https://discordjs.guide/"},
+            {"title": "How To Create a Telegram Bot Using Python", "lang": "Python", "url": "https://www.freecodecamp.org/news/how-to-create-a-telegram-bot-using-python/"}
+          ]
+        },
+        {
+          "name": "Command-Line Tool",
+          "count": 9,
+          "difficulty": 2,
+          "foundationLevel": 2,
+          "languages": ["Go", "Nim", "Node.js", "Rust", "Zig"],
+          "tutorials": [
+            {"title": "Command line apps in Rust", "lang": "Rust", "url": "https://rust-cli.github.io/book/index.html"},
+            {"title": "Build a command line app with Go: lolcat", "lang": "Go", "url": "https://flaviocopes.com/go-tutorial-lolcat/"},
+            {"title": "Create a CLI tool in Javascript", "lang": "Node.js", "url": "https://citw.dev/tutorial/create-your-own-cli-tool"}
+          ]
+        },
+        {
+          "name": "Shell",
+          "count": 7,
+          "difficulty": 3,
+          "foundationLevel": 4,
+          "languages": ["C", "Go", "Rust"],
+          "tutorials": [
+            {"title": "Tutorial - Write a Shell in C", "lang": "C", "url": "https://brennan.io/2015/01/16/write-a-shell-in-c/"},
+            {"title": "Build Your Own Shell using Rust", "lang": "Rust", "url": "https://www.joshmcguigan.com/blog/build-your-own-shell-rust/"},
+            {"title": "Writing a simple shell in Go", "lang": "Go", "url": "https://sj14.gitlab.io/post/2018-07-01-go-unix-shell/"}
+          ]
+        },
+        {
+          "name": "Docker",
+          "count": 6,
+          "difficulty": 4,
+          "foundationLevel": 3,
+          "languages": ["C", "Go", "Python", "Shell"],
+          "tutorials": [
+            {"title": "Linux containers in 500 lines of code", "lang": "C", "url": "https://blog.lizzie.io/linux-containers-in-500-loc.html"},
+            {"title": "Build Your Own Container Using Less than 100 Lines of Go", "lang": "Go", "url": "https://www.infoq.com/articles/build-a-container-golang"},
+            {"title": "Docker implemented in around 100 lines of bash", "lang": "Shell", "url": "https://github.com/p8952/bocker"}
+          ]
+        }
+      ],
+      "wude": {"dao": 6, "de": 6, "ren": 8, "yi": 7, "li": 6}
+    },
+    {
+      "id": "xun",
+      "symbol": "☴",
+      "name": "巽",
+      "element": "风/渗透",
+      "color": "#2E8B57",
+      "insight": "渗透处理，转化万物——搜索发现、模板转换、编辑器改变文本",
+      "categories": [
+        {
+          "name": "Search Engine",
+          "count": 6,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["CSS", "Python"],
+          "tutorials": [
+            {"title": "Building a search engine using Redis and redis-py", "lang": "Python", "url": "http://www.dr-josiah.com/2010/07/building-search-engine-using-redis-and.html"},
+            {"title": "Building a Vector Space Indexing Engine in Python", "lang": "Python", "url": "https://boyter.org/2010/08/build-vector-space-search-engine-python/"},
+            {"title": "A search engine in CSS", "lang": "CSS", "url": "https://stories.algolia.com/a-search-engine-in-css-b5ec4e902e97"}
+          ]
+        },
+        {
+          "name": "Template Engine",
+          "count": 5,
+          "difficulty": 2,
+          "foundationLevel": 3,
+          "languages": ["JavaScript", "Python", "Ruby"],
+          "tutorials": [
+            {"title": "A Template Engine", "lang": "Python", "url": "http://aosabook.org/en/500L/a-template-engine.html"},
+            {"title": "JavaScript template engine in just 20 lines", "lang": "JavaScript", "url": "http://krasimirtsonev.com/blog/article/Javascript-template-engine-in-just-20-line"}
+          ]
+        },
+        {
+          "name": "Text Editor",
+          "count": 6,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["C", "C++", "Python", "Ruby", "Rust"],
+          "tutorials": [
+            {"title": "Build Your Own Text Editor", "lang": "C", "url": "https://viewsourcecode.org/snaptoken/kilo/"},
+            {"title": "Hecto: Build your own text editor in Rust", "lang": "Rust", "url": "https://www.flenker.blog/hecto/"}
+          ]
+        }
+      ],
+      "wude": {"dao": 7, "de": 7, "ren": 8, "yi": 7, "li": 6}
+    },
+    {
+      "id": "gen",
+      "symbol": "☶",
+      "name": "艮",
+      "element": "山/静止",
+      "color": "#708090",
+      "insight": "持久不变，山岳之稳——数据库存储、区块链不可篡改、Git记录历史",
+      "categories": [
+        {
+          "name": "Database",
+          "count": 13,
+          "difficulty": 4,
+          "foundationLevel": 4,
+          "languages": ["C", "C++", "C#", "Clojure", "Crystal", "Go", "JavaScript", "Python", "Ruby", "Rust"],
+          "tutorials": [
+            {"title": "Let's Build a Simple Database", "lang": "C", "url": "https://cstack.github.io/db_tutorial/"},
+            {"title": "Build Your Own Database from Scratch", "lang": "Go", "url": "https://build-your-own.org/database/"},
+            {"title": "Build Your Own Redis from Scratch", "lang": "C++", "url": "https://build-your-own.org/redis"},
+            {"title": "Build your own Redis client and server", "lang": "Rust", "url": "https://tokio.rs/tokio/tutorial/setup"}
+          ]
+        },
+        {
+          "name": "Blockchain",
+          "count": 21,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["ATS", "Crystal", "Go", "Java", "JavaScript", "Kotlin", "Python", "Ruby", "Rust", "Scala", "TypeScript"],
+          "tutorials": [
+            {"title": "Learn Blockchains by Building One", "lang": "Python", "url": "https://hackernoon.com/learn-blockchains-by-building-one-117428612f46"},
+            {"title": "Building Blockchain in Go", "lang": "Go", "url": "https://jeiwan.net/posts/building-blockchain-in-go-part-1/"},
+            {"title": "Naivecoin: a tutorial for building a cryptocurrency", "lang": "TypeScript", "url": "https://lhartikk.github.io/"},
+            {"title": "Building A Blockchain in Rust & Substrate", "lang": "Rust", "url": "https://hackernoon.com/building-a-blockchain-in-rust-and-substrate"}
+          ]
+        },
+        {
+          "name": "Git",
+          "count": 7,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["Haskell", "JavaScript", "Python", "Ruby"],
+          "tutorials": [
+            {"title": "Write yourself a Git!", "lang": "Python", "url": "https://wyag.thb.lt/"},
+            {"title": "ugit: Learn Git Internals by Building Git Yourself", "lang": "Python", "url": "https://www.leshenko.net/p/ugit/"},
+            {"title": "Gitlet", "lang": "JavaScript", "url": "http://gitlet.maryrosecook.com/docs/gitlet.html"}
+          ]
+        }
+      ],
+      "wude": {"dao": 8, "de": 8, "ren": 5, "yi": 9, "li": 8}
+    },
+    {
+      "id": "dui",
+      "symbol": "☱",
+      "name": "兑",
+      "element": "泽/智慧",
+      "color": "#00CED1",
+      "insight": "汇聚数据，映射智慧——AI模型、神经网络、视觉识别是智慧之泽",
+      "categories": [
+        {
+          "name": "AI Model",
+          "count": 3,
+          "difficulty": 4,
+          "foundationLevel": 2,
+          "languages": ["Python"],
+          "tutorials": [
+            {"title": "A Large Language Model (LLM) from scratch", "lang": "Python", "url": "https://github.com/rasbt/LLMs-from-scratch"},
+            {"title": "Diffusion Models for Image Generation", "lang": "Python", "url": "https://huggingface.co/learn/diffusion-course/en/unit1/3"},
+            {"title": "RAG for Document Search", "lang": "Python", "url": "https://github.com/langchain-ai/rag-from-scratch"}
+          ]
+        },
+        {
+          "name": "Neural Network",
+          "count": 16,
+          "difficulty": 3,
+          "foundationLevel": 3,
+          "languages": ["C#", "F#", "Go", "JavaScript", "Java", "Python"],
+          "tutorials": [
+            {"title": "Neural Networks: Zero to Hero", "lang": "Python", "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ"},
+            {"title": "A Neural Network in 11 lines of Python", "lang": "Python", "url": "https://iamtrask.github.io/2015/07/12/basic-python-network/"},
+            {"title": "Implement a Neural Network from Scratch", "lang": "Python", "url": "https://victorzhou.com/blog/intro-to-neural-networks/"},
+            {"title": "SlowTorch: Implementation of PyTorch from ground up", "lang": "Python", "url": "https://github.com/xames3/slowtorch"}
+          ]
+        },
+        {
+          "name": "Visual Recognition",
+          "count": 2,
+          "difficulty": 4,
+          "foundationLevel": 2,
+          "languages": ["Python"],
+          "tutorials": [
+            {"title": "Developing a License Plate Recognition System", "lang": "Python", "url": "https://medium.com/devcenter/developing-a-license-plate-recognition-system-with-machine-learning-in-python-787833569ccd"},
+            {"title": "Building a Facial Recognition Pipeline with Deep Learning", "lang": "Python", "url": "https://hackernoon.com/building-a-facial-recognition-pipeline-with-deep-learning-in-tensorflow-66e7645015b8"}
+          ]
+        }
+      ],
+      "wude": {"dao": 9, "de": 6, "ren": 7, "yi": 7, "li": 5}
+    }
+  ],
+
+  "additionalCategories": [
+    {
+      "name": "Emulator / Virtual Machine",
+      "count": 13,
+      "baguaAffinity": "kun",
+      "note": "归入坤卦——模拟器是虚拟的大地"
+    },
+    {
+      "name": "Physics Engine",
+      "count": 7,
+      "baguaAffinity": "li",
+      "note": "归入离卦——物理引擎让运动可见"
+    }
+  ],
+
+  "languageStats": {
+    "top12": [
+      {"lang": "Python", "count": 88, "symbol": "太极", "nature": "阴阳合一，万用之语"},
+      {"lang": "JavaScript", "count": 77, "symbol": "阳", "nature": "动态灵活，前端之王"},
+      {"lang": "C", "count": 67, "symbol": "阴", "nature": "底层静默，万物之基"},
+      {"lang": "C++", "count": 54, "symbol": "少阳", "nature": "C之进化，性能之巅"},
+      {"lang": "Go", "count": 36, "symbol": "少阴", "nature": "简约之道，并发之力"},
+      {"lang": "Java", "count": 27, "symbol": "老阳", "nature": "企业之选，稳健之路"},
+      {"lang": "Rust", "count": 26, "symbol": "变", "nature": "安全革新，未来之选"},
+      {"lang": "Node.js", "count": 24, "symbol": "阳动", "nature": "JS之服务端延伸"},
+      {"lang": "Ruby", "count": 18, "symbol": "少阴", "nature": "优雅之美，开发者之乐"},
+      {"lang": "C#", "count": 17, "symbol": "老阴", "nature": "微软之器，全能之选"},
+      {"lang": "Haskell", "count": 7, "symbol": "太阴", "nature": "纯粹函数，学术之光"},
+      {"lang": "TypeScript", "count": 8, "symbol": "阳明", "nature": "类型之道，JS之进化"}
+    ],
+    "languageByCategoryMatrix": {
+      "categories": ["3D Renderer", "AI Model", "Augmented Reality", "BitTorrent", "Blockchain", "Bot", "CLI Tool", "Database", "Docker", "Front-end", "Game", "Git", "Neural Network", "Network Stack", "OS", "Programming Language", "Regex Engine", "Search Engine", "Shell", "Template Engine", "Text Editor", "Visual Recognition", "Voxel Engine", "Web Browser", "Web Server", "Emulator/VM", "Physics Engine", "Distributed Systems", "Memory Allocator", "Processor"],
+      "languages": ["Python", "JavaScript", "C", "C++", "Go", "Java", "Rust", "Ruby", "C#", "Node.js", "TypeScript", "Haskell"],
+      "matrix": [
+        [1,0,0,0,1,3,0,2,1,0,2,1,8,0,0,6,1,5,0,1,2,2,0,1,4,1,0,0,0,0],
+        [0,0,0,0,5,0,0,1,0,14,7,2,2,0,0,6,3,0,0,2,0,0,0,0,0,1,3,0,0,0],
+        [0,0,0,0,0,0,0,1,1,0,8,0,0,1,14,8,2,0,5,0,1,0,0,0,0,4,1,0,1,0],
+        [6,0,0,0,0,0,0,1,0,0,6,0,0,0,3,3,0,0,0,0,1,0,1,0,0,8,4,0,0,0],
+        [0,0,0,1,2,0,4,2,2,0,1,0,3,0,0,2,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+        [1,0,0,0,1,0,0,0,0,0,3,0,1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,0,1,1,2,1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,0,1,0,0,0,0],
+        [0,0,0,0,1,0,0,1,0,0,2,1,0,1,0,2,0,0,0,1,1,0,0,0,1,0,0,0,0,0],
+        [1,0,5,1,0,0,0,1,0,0,3,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0],
+        [0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ]
+    }
+  },
+
+  "learningPaths": [
+    {
+      "id": "tianlu",
+      "name": "天路·语言创造者",
+      "description": "从理解正则表达式到构建自己的编程语言，掌握计算的本质",
+      "icon": "☰",
+      "color": "#FFD700",
+      "steps": [
+        {"category": "Regex Engine", "bagua": "qian", "order": 1},
+        {"category": "Template Engine", "bagua": "xun", "order": 2},
+        {"category": "Programming Language", "bagua": "qian", "order": 3},
+        {"category": "Emulator / Virtual Machine", "bagua": "kun", "order": 4}
+      ]
+    },
+    {
+      "id": "dilu",
+      "name": "地路·系统架构师",
+      "description": "从内存管理到操作系统，构建软件世界的地基",
+      "icon": "☷",
+      "color": "#8B6914",
+      "steps": [
+        {"category": "Memory Allocator", "bagua": "kun", "order": 1},
+        {"category": "Shell", "bagua": "zhen", "order": 2},
+        {"category": "Operating System", "bagua": "kun", "order": 3},
+        {"category": "Docker", "bagua": "zhen", "order": 4}
+      ]
+    },
+    {
+      "id": "shuilu",
+      "name": "水路·网络工程师",
+      "description": "理解数据如何在网络中流动，构建从底层到应用的完整栈",
+      "icon": "☵",
+      "color": "#4169E1",
+      "steps": [
+        {"category": "Network Stack", "bagua": "kan", "order": 1},
+        {"category": "Web Server", "bagua": "kan", "order": 2},
+        {"category": "Web Browser", "bagua": "kan", "order": 3},
+        {"category": "Distributed Systems", "bagua": "kan", "order": 4}
+      ]
+    },
+    {
+      "id": "huolu",
+      "name": "火路·全栈创意者",
+      "description": "从3D渲染到游戏开发，用代码点亮视觉世界",
+      "icon": "☲",
+      "color": "#FF4500",
+      "steps": [
+        {"category": "Front-end Framework", "bagua": "li", "order": 1},
+        {"category": "3D Renderer", "bagua": "li", "order": 2},
+        {"category": "Game", "bagua": "li", "order": 3},
+        {"category": "Physics Engine", "bagua": "li", "order": 4}
+      ]
+    },
+    {
+      "id": "shanlu",
+      "name": "山路·数据守护者",
+      "description": "构建持久化系统，让数据如山般不可动摇",
+      "icon": "☶",
+      "color": "#708090",
+      "steps": [
+        {"category": "Git", "bagua": "gen", "order": 1},
+        {"category": "Database", "bagua": "gen", "order": 2},
+        {"category": "Blockchain", "bagua": "gen", "order": 3},
+        {"category": "Search Engine", "bagua": "xun", "order": 4}
+      ]
+    },
+    {
+      "id": "zhilu",
+      "name": "智路·AI修行者",
+      "description": "从神经网络基础到大语言模型，探索智慧的边界",
+      "icon": "☱",
+      "color": "#00CED1",
+      "steps": [
+        {"category": "Neural Network", "bagua": "dui", "order": 1},
+        {"category": "Visual Recognition", "bagua": "dui", "order": 2},
+        {"category": "AI Model", "bagua": "dui", "order": 3},
+        {"category": "Bot", "bagua": "zhen", "order": 4}
+      ]
+    }
+  ],
+
+  "connections": [
+    {"from": "Programming Language", "to": "Regex Engine", "type": "prerequisite", "strength": 3},
+    {"from": "Operating System", "to": "Memory Allocator", "type": "contains", "strength": 3},
+    {"from": "Operating System", "to": "Shell", "type": "enables", "strength": 3},
+    {"from": "Network Stack", "to": "Web Server", "type": "prerequisite", "strength": 2},
+    {"from": "Web Server", "to": "Web Browser", "type": "complement", "strength": 2},
+    {"from": "3D Renderer", "to": "Game", "type": "enables", "strength": 3},
+    {"from": "Neural Network", "to": "AI Model", "type": "prerequisite", "strength": 3},
+    {"from": "Neural Network", "to": "Visual Recognition", "type": "enables", "strength": 2},
+    {"from": "Database", "to": "Search Engine", "type": "enables", "strength": 2},
+    {"from": "Database", "to": "Blockchain", "type": "complement", "strength": 1},
+    {"from": "Front-end Framework", "to": "Game", "type": "complement", "strength": 1},
+    {"from": "Template Engine", "to": "Front-end Framework", "type": "prerequisite", "strength": 2},
+    {"from": "Docker", "to": "Operating System", "type": "requires", "strength": 2},
+    {"from": "Git", "to": "Blockchain", "type": "analogy", "strength": 1},
+    {"from": "Bot", "to": "AI Model", "type": "applies", "strength": 2},
+    {"from": "Shell", "to": "Command-Line Tool", "type": "complement", "strength": 2},
+    {"from": "Programming Language", "to": "Emulator / Virtual Machine", "type": "enables", "strength": 2},
+    {"from": "Physics Engine", "to": "Game", "type": "enables", "strength": 2},
+    {"from": "Web Server", "to": "BitTorrent Client", "type": "complement", "strength": 1}
+  ]
+}

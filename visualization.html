@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build Your Own X · 八卦技能树可视化</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-bright: #e6edf3;
+      --accent: #58a6ff;
+      --accent2: #f78166;
+      --accent3: #7ee787;
+      --accent4: #d2a8ff;
+      --accent5: #ffa657;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    h1 {
+      font-size: 32px;
+      color: var(--text-bright);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 12px;
+      margin-bottom: 8px;
+    }
+    h1 .bagua-ring { font-size: 24px; letter-spacing: 4px; }
+    .subtitle {
+      color: #8b949e;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .subtitle a { color: var(--accent); text-decoration: none; }
+
+    /* Metric cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .metric-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+    .metric-card .label {
+      font-size: 13px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    .metric-card:nth-child(1) .value { color: #FFD700; }
+    .metric-card:nth-child(2) .value { color: var(--accent); }
+    .metric-card:nth-child(3) .value { color: var(--accent3); }
+    .metric-card:nth-child(4) .value { color: var(--accent4); }
+    .metric-card:nth-child(5) .value { color: var(--accent2); }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 14px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: var(--text-bright); }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Chart containers */
+    .chart-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .chart-title {
+      font-size: 18px;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+      border-left: 3px solid var(--accent);
+      padding-left: 12px;
+    }
+    .chart-desc {
+      font-size: 13px;
+      color: #8b949e;
+      margin-bottom: 16px;
+      padding-left: 15px;
+    }
+    .chart { width: 100%; height: 520px; }
+
+    /* Insight boxes */
+    .insight-box {
+      background: rgba(88,166,255,0.06);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .insight-box strong { color: var(--accent); }
+    .insight-box.gold { border-color: rgba(255,215,0,0.3); background: rgba(255,215,0,0.05); }
+    .insight-box.gold strong { color: #FFD700; }
+
+    footer {
+      text-align: center;
+      padding: 24px 0;
+      color: #484f58;
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      h1 { font-size: 22px; }
+      .chart { height: 380px; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .tab-btn { font-size: 13px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>
+  <span class="bagua-ring">☰☷☵☲☳☴☶☱</span> Build Your Own X · 技能树
+</h1>
+<p class="subtitle">
+  以八卦映射 31 类技术 · 素书五德解析造物之道 ·
+  数据来源 <a href="https://github.com/codecrafters-io/build-your-own-x" target="_blank">codecrafters-io/build-your-own-x</a> (469K+ stars)
+</p>
+
+<div class="metric-grid">
+  <div class="metric-card"><div class="value">469K+</div><div class="label">GitHub Stars</div></div>
+  <div class="metric-card"><div class="value">590+</div><div class="label">教程总数</div></div>
+  <div class="metric-card"><div class="value">31</div><div class="label">技术类别</div></div>
+  <div class="metric-card"><div class="value">37+</div><div class="label">编程语言</div></div>
+  <div class="metric-card"><div class="value">8</div><div class="label">八卦分组</div></div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="sunburst">☰ 八卦日轮</button>
+  <button class="tab-btn" data-tab="force">🌐 技能力导图</button>
+  <button class="tab-btn" data-tab="heatmap">🔥 语言热力图</button>
+  <button class="tab-btn" data-tab="radar">⭐ 五德雷达</button>
+  <button class="tab-btn" data-tab="sankey">🛤 学习路径</button>
+</div>
+
+<!-- Tab 1: Sunburst -->
+<div class="tab-panel active" id="panel-sunburst">
+  <div class="chart-container">
+    <div class="chart-title">八卦日轮 · Sunburst</div>
+    <div class="chart-desc">内圈八卦分组，外圈 31 技术类别，面积 = 教程数量。点击可下钻/返回</div>
+    <div id="chart-sunburst" class="chart"></div>
+  </div>
+  <div class="insight-box gold">
+    <strong>乾卦（天/创生）</strong>以 50 篇教程领衔，编程语言（41篇）是最大单一类别，印证了"天行健"的创生本质。
+    <strong>离卦（火/照明）</strong>紧随其后共 66 篇，游戏开发（34篇）是最受欢迎的造物项目。
+  </div>
+</div>
+
+<!-- Tab 2: Force Graph -->
+<div class="tab-panel" id="panel-force">
+  <div class="chart-container">
+    <div class="chart-title">技能树力导图 · Force Graph</div>
+    <div class="chart-desc">中心为 Build Your Own X，八卦为中间节点，类别为叶节点。节点大小 = 教程数，连线显示前置关系</div>
+    <div id="chart-force" class="chart" style="height: 600px;"></div>
+  </div>
+  <div class="insight-box">
+    <strong>关键发现：</strong>Programming Language 和 Game 是两个超级节点（41 / 34 篇），形成"创造"与"呈现"的双极。
+    Operating System 虽仅 19 篇但连接最多底层模块，是真正的"根基"节点。
+  </div>
+</div>
+
+<!-- Tab 3: Heatmap -->
+<div class="tab-panel" id="panel-heatmap">
+  <div class="chart-container">
+    <div class="chart-title">语言 × 类别 热力图 · Heatmap</div>
+    <div class="chart-desc">横轴为 12 门主要编程语言，纵轴为技术类别，颜色深浅 = 该语言在该类别的教程数量</div>
+    <div id="chart-heatmap" class="chart" style="height: 640px;"></div>
+  </div>
+  <div class="insight-box">
+    <strong>Python 称霸 AI 领域：</strong>Neural Network (8篇)、Search Engine (5篇)、AI Model (3篇) 几乎全是 Python。
+    <strong>C/C++ 主导底层：</strong>Operating System (17篇)、Emulator (12篇)、Physics Engine (5篇) 由 C/C++ 统治。
+    <strong>JavaScript 制霸前端：</strong>Front-end Framework (14篇) 全部是 JavaScript。
+  </div>
+</div>
+
+<!-- Tab 4: Radar -->
+<div class="tab-panel" id="panel-radar">
+  <div class="chart-container">
+    <div class="chart-title">五德雷达 · Radar</div>
+    <div class="chart-desc">素书五德（道·德·仁·义·礼）对八卦分组的评分。道=底层原理, 德=代码工艺, 仁=用户关怀, 义=系统完整性, 礼=标准规范</div>
+    <div id="chart-radar" class="chart"></div>
+  </div>
+  <div class="insight-box gold">
+    <strong>坤卦（地/承载）</strong>道值最高（10分），操作系统是最接近计算本质的造物。
+    <strong>离卦（火/照明）</strong>仁值最高（9分），游戏和前端是最面向用户的领域。
+    <strong>乾卦（天/创生）</strong>礼值最高（9分），编程语言必须遵循严格的语法规范。
+  </div>
+</div>
+
+<!-- Tab 5: Sankey -->
+<div class="tab-panel" id="panel-sankey">
+  <div class="chart-container">
+    <div class="chart-title">六条修炼路径 · Sankey</div>
+    <div class="chart-desc">从入门到精通的六条学习路径：天路·地路·水路·火路·山路·智路</div>
+    <div id="chart-sankey" class="chart" style="height: 560px;"></div>
+  </div>
+  <div class="insight-box">
+    <strong>天路（语言创造者）：</strong>Regex → Template → Programming Language → Emulator，从模式到语言再到虚拟机，掌握计算本质。<br>
+    <strong>地路（系统架构师）：</strong>Memory Allocator → Shell → OS → Docker，从底层到容器化，构建系统根基。<br>
+    <strong>智路（AI修行者）：</strong>Neural Network → Visual Recognition → AI Model → Bot，从基础到应用，探索智慧边界。
+  </div>
+</div>
+
+<footer>
+  Build Your Own X · 八卦技能树可视化 · 道器合一 · 造物即修行<br>
+  数据来源: github.com/codecrafters-io/build-your-own-x · 生成日期: 2026-02-25
+</footer>
+
+<script>
+// ===== Color scheme =====
+const BAGUA_COLORS = {
+  qian: '#FFD700', kun: '#8B6914', kan: '#4169E1', li: '#FF4500',
+  zhen: '#9932CC', xun: '#2E8B57', gen: '#708090', dui: '#00CED1'
+};
+const COLORS = {
+  blue: '#58a6ff', orange: '#f78166', green: '#7ee787',
+  purple: '#d2a8ff', yellow: '#ffa657', pink: '#f778ba',
+  cyan: '#79c0ff', red: '#ff7b72', gray: '#8b949e'
+};
+const tooltipStyle = {
+  backgroundColor: '#161b22',
+  borderColor: '#30363d',
+  textStyle: { color: '#c9d1d9', fontSize: 12 }
+};
+
+// ===== Data =====
+const baguaData = [
+  { id:'qian', symbol:'☰', name:'乾', element:'天/创生', categories: [
+    {name:'Programming Language', count:41},
+    {name:'Regex Engine', count:9}
+  ], wude:{dao:9,de:7,ren:5,yi:8,li:9}},
+  { id:'kun', symbol:'☷', name:'坤', element:'地/承载', categories: [
+    {name:'Operating System', count:19},
+    {name:'Memory Allocator', count:1},
+    {name:'Processor', count:1}
+  ], wude:{dao:10,de:8,ren:3,yi:9,li:7}},
+  { id:'kan', symbol:'☵', name:'坎', element:'水/流动', categories: [
+    {name:'Network Stack', count:4},
+    {name:'Web Server', count:11},
+    {name:'Web Browser', count:2},
+    {name:'BitTorrent Client', count:5},
+    {name:'Distributed Systems', count:1}
+  ], wude:{dao:8,de:7,ren:7,yi:8,li:9}},
+  { id:'li', symbol:'☲', name:'离', element:'火/照明', categories: [
+    {name:'3D Renderer', count:11},
+    {name:'Game', count:34},
+    {name:'Front-end Framework', count:14},
+    {name:'Augmented Reality', count:6},
+    {name:'Voxel Engine', count:1}
+  ], wude:{dao:6,de:7,ren:9,yi:6,li:7}},
+  { id:'zhen', symbol:'☳', name:'震', element:'雷/行动', categories: [
+    {name:'Bot', count:15},
+    {name:'CLI Tool', count:9},
+    {name:'Shell', count:7},
+    {name:'Docker', count:6}
+  ], wude:{dao:6,de:6,ren:8,yi:7,li:6}},
+  { id:'xun', symbol:'☴', name:'巽', element:'风/渗透', categories: [
+    {name:'Search Engine', count:6},
+    {name:'Template Engine', count:5},
+    {name:'Text Editor', count:6}
+  ], wude:{dao:7,de:7,ren:8,yi:7,li:6}},
+  { id:'gen', symbol:'☶', name:'艮', element:'山/静止', categories: [
+    {name:'Database', count:13},
+    {name:'Blockchain', count:21},
+    {name:'Git', count:7}
+  ], wude:{dao:8,de:8,ren:5,yi:9,li:8}},
+  { id:'dui', symbol:'☱', name:'兑', element:'泽/智慧', categories: [
+    {name:'AI Model', count:3},
+    {name:'Neural Network', count:16},
+    {name:'Visual Recognition', count:2}
+  ], wude:{dao:9,de:6,ren:7,yi:7,li:5}}
+];
+
+// ===== Tab switching =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-' + this.dataset.tab).classList.add('active');
+    // Trigger resize for the active chart
+    const chartId = 'chart-' + this.dataset.tab;
+    const inst = echarts.getInstanceByDom(document.getElementById(chartId));
+    if (inst) setTimeout(() => inst.resize(), 50);
+  });
+});
+
+// ===== Chart 1: Sunburst =====
+const sunburstChart = echarts.init(document.getElementById('chart-sunburst'));
+const sunburstData = baguaData.map(bg => ({
+  name: bg.symbol + ' ' + bg.name + '\n' + bg.element,
+  value: bg.categories.reduce((s,c) => s + c.count, 0),
+  itemStyle: { color: BAGUA_COLORS[bg.id] },
+  children: bg.categories.map(cat => ({
+    name: cat.name,
+    value: cat.count,
+    itemStyle: {
+      color: echarts.color.lift(BAGUA_COLORS[bg.id], -0.2)
+    }
+  }))
+}));
+sunburstChart.setOption({
+  tooltip: { ...tooltipStyle, formatter: p => {
+    const val = p.value || 0;
+    return '<b>' + p.name.replace('\n',' ') + '</b><br/>教程数: ' + val;
+  }},
+  series: [{
+    type: 'sunburst',
+    data: sunburstData,
+    radius: ['12%', '88%'],
+    sort: 'desc',
+    emphasis: { focus: 'ancestor' },
+    levels: [
+      {},
+      {
+        r0: '12%', r: '45%',
+        label: { fontSize: 14, fontWeight: 'bold', color: '#e6edf3' },
+        itemStyle: { borderWidth: 2, borderColor: '#0d1117' }
+      },
+      {
+        r0: '45%', r: '88%',
+        label: {
+          fontSize: 11, color: '#c9d1d9',
+          align: 'right', padding: 3,
+          formatter: p => {
+            const n = p.name;
+            return n.length > 18 ? n.slice(0, 16) + '..' : n;
+          }
+        },
+        itemStyle: { borderWidth: 1, borderColor: '#0d1117' }
+      }
+    ]
+  }]
+});
+
+// ===== Chart 2: Force Graph =====
+const forceChart = echarts.init(document.getElementById('chart-force'));
+const forceNodes = [
+  { id: 'center', name: 'Build Your\nOwn X', symbolSize: 50, category: 8,
+    itemStyle: { color: '#58a6ff' }, label: { fontSize: 14, fontWeight: 'bold' } }
+];
+const forceLinks = [];
+const forceCategories = baguaData.map(bg => ({
+  name: bg.symbol + ' ' + bg.name
+}));
+forceCategories.push({ name: 'Center' });
+
+baguaData.forEach((bg, i) => {
+  const baguaId = bg.id;
+  const total = bg.categories.reduce((s,c) => s + c.count, 0);
+  forceNodes.push({
+    id: baguaId, name: bg.symbol + ' ' + bg.name + '\n' + bg.element,
+    symbolSize: 30 + total * 0.3, category: i,
+    itemStyle: { color: BAGUA_COLORS[baguaId] },
+    label: { fontSize: 12, fontWeight: 'bold' }
+  });
+  forceLinks.push({ source: 'center', target: baguaId, lineStyle: { width: 2, color: '#30363d' }});
+
+  bg.categories.forEach(cat => {
+    const catId = baguaId + '-' + cat.name;
+    forceNodes.push({
+      id: catId, name: cat.name + '\n(' + cat.count + ')',
+      symbolSize: 10 + Math.sqrt(cat.count) * 6, category: i,
+      itemStyle: { color: echarts.color.lift(BAGUA_COLORS[baguaId], -0.15) },
+      label: { fontSize: 10 }
+    });
+    forceLinks.push({ source: baguaId, target: catId, lineStyle: { width: 1, color: '#21262d' }});
+  });
+});
+
+// Add prerequisite connections
+const prereqs = [
+  ['qian-Programming Language','qian-Regex Engine'],
+  ['kan-Network Stack','kan-Web Server'],
+  ['kan-Web Server','kan-Web Browser'],
+  ['li-3D Renderer','li-Game'],
+  ['dui-Neural Network','dui-AI Model'],
+  ['dui-Neural Network','dui-Visual Recognition'],
+  ['gen-Database','xun-Search Engine'],
+  ['xun-Template Engine','li-Front-end Framework'],
+  ['zhen-Shell','zhen-CLI Tool']
+];
+prereqs.forEach(([from, to]) => {
+  forceLinks.push({
+    source: from, target: to,
+    lineStyle: { width: 1.5, color: COLORS.orange, type: 'dashed', curveness: 0.3 }
+  });
+});
+
+forceChart.setOption({
+  tooltip: { ...tooltipStyle, formatter: p => {
+    if (p.dataType === 'node') return '<b>' + p.name.replace('\n',' ') + '</b>';
+    return '';
+  }},
+  legend: {
+    data: forceCategories.slice(0,8).map(c => c.name),
+    bottom: 10, textStyle: { color: '#8b949e', fontSize: 11 },
+    icon: 'circle'
+  },
+  series: [{
+    type: 'graph',
+    layout: 'force',
+    data: forceNodes,
+    links: forceLinks,
+    categories: forceCategories,
+    roam: true,
+    draggable: true,
+    label: { show: true, color: '#c9d1d9', fontSize: 10 },
+    force: {
+      repulsion: 350,
+      gravity: 0.08,
+      edgeLength: [60, 160],
+      friction: 0.6
+    },
+    emphasis: {
+      focus: 'adjacency',
+      lineStyle: { width: 3 }
+    }
+  }]
+});
+
+// ===== Chart 3: Heatmap =====
+const heatmapChart = echarts.init(document.getElementById('chart-heatmap'));
+const heatLangs = ['Python','JavaScript','C','C++','Go','Java','Rust','Ruby','C#','Node.js','TypeScript','Haskell'];
+const heatCats = [
+  '3D Renderer','AI Model','Augmented Reality','BitTorrent','Blockchain','Bot',
+  'CLI Tool','Database','Docker','Front-end','Game','Git','Neural Network',
+  'Network Stack','OS','Prog. Language','Regex Engine','Search Engine',
+  'Shell','Template Engine','Text Editor','Visual Recognition','Voxel Engine',
+  'Web Browser','Web Server','Emulator/VM','Physics Engine','Distributed Sys.',
+  'Memory Alloc.','Processor'
+];
+const heatMatrix = [
+  [1,0,0,0,1,3,0,2,1,0,2,1,8,0,0,6,1,5,0,1,2,2,0,1,4,1,0,0,0,0],
+  [0,0,0,0,5,0,0,1,0,14,7,2,2,0,0,6,3,0,0,2,0,0,0,0,0,1,3,0,0,0],
+  [0,0,0,0,0,0,0,1,1,0,8,0,0,1,14,8,2,0,5,0,1,0,0,0,0,4,1,0,1,0],
+  [6,0,0,0,0,0,0,1,0,0,6,0,0,0,3,3,0,0,0,0,1,0,1,0,0,8,4,0,0,0],
+  [0,0,0,1,2,0,4,2,2,0,1,0,3,0,0,2,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+  [1,0,0,0,1,0,0,0,0,0,3,0,1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+  [0,0,0,0,1,1,2,1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,0,1,0,0,0,0],
+  [0,0,0,0,1,0,0,1,0,0,2,1,0,1,0,2,0,0,0,1,1,0,0,0,1,0,0,0,0,0],
+  [1,0,5,1,0,0,0,1,0,0,3,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+  [0,0,0,1,0,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0],
+  [0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+const heatData = [];
+heatMatrix.forEach((row, li) => {
+  row.forEach((val, ci) => {
+    if (val > 0) heatData.push([li, ci, val]);
+  });
+});
+heatmapChart.setOption({
+  tooltip: { ...tooltipStyle, formatter: p => {
+    return '<b>' + heatLangs[p.value[0]] + '</b> × <b>' + heatCats[p.value[1]] + '</b><br/>教程数: ' + p.value[2];
+  }},
+  grid: { left: 100, right: 40, top: 30, bottom: 100 },
+  xAxis: {
+    type: 'category', data: heatLangs, position: 'bottom',
+    axisLabel: { color: '#c9d1d9', fontSize: 11, rotate: 30 },
+    axisLine: { lineStyle: { color: '#30363d' }},
+    splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']}}
+  },
+  yAxis: {
+    type: 'category', data: heatCats,
+    axisLabel: { color: '#8b949e', fontSize: 10 },
+    axisLine: { lineStyle: { color: '#30363d' }},
+    splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']}}
+  },
+  visualMap: {
+    min: 0, max: 14, calculable: true,
+    orient: 'horizontal', left: 'center', bottom: 5,
+    textStyle: { color: '#8b949e' },
+    inRange: {
+      color: ['#0d1117', '#1a3a5c', '#2a5e8f', '#4169E1', '#58a6ff', '#7ee787', '#FFD700']
+    }
+  },
+  series: [{
+    type: 'heatmap',
+    data: heatData,
+    label: {
+      show: true, fontSize: 10, color: '#e6edf3',
+      formatter: p => p.value[2] > 0 ? p.value[2] : ''
+    },
+    emphasis: {
+      itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' }
+    }
+  }]
+});
+
+// ===== Chart 4: Radar =====
+const radarChart = echarts.init(document.getElementById('chart-radar'));
+const wudeNames = ['道\n(原理)', '德\n(工艺)', '仁\n(用户)', '义\n(完整)', '礼\n(规范)'];
+radarChart.setOption({
+  tooltip: { ...tooltipStyle },
+  legend: {
+    data: baguaData.map(bg => bg.symbol + ' ' + bg.name),
+    bottom: 5, textStyle: { color: '#8b949e', fontSize: 11 },
+    icon: 'circle',
+    selected: {
+      '☰ 乾': true, '☷ 坤': true, '☵ 坎': false, '☲ 离': true,
+      '☳ 震': false, '☴ 巽': false, '☶ 艮': true, '☱ 兑': true
+    }
+  },
+  radar: {
+    indicator: wudeNames.map(n => ({ name: n, max: 10 })),
+    shape: 'polygon',
+    splitNumber: 5,
+    center: ['50%', '46%'],
+    radius: '65%',
+    axisName: { color: '#c9d1d9', fontSize: 13 },
+    splitLine: { lineStyle: { color: '#21262d' }},
+    splitArea: { areaStyle: { color: ['rgba(88,166,255,0.03)', 'rgba(88,166,255,0.06)'] }},
+    axisLine: { lineStyle: { color: '#30363d' }}
+  },
+  series: [{
+    type: 'radar',
+    data: baguaData.map(bg => ({
+      name: bg.symbol + ' ' + bg.name,
+      value: [bg.wude.dao, bg.wude.de, bg.wude.ren, bg.wude.yi, bg.wude.li],
+      lineStyle: { color: BAGUA_COLORS[bg.id], width: 2 },
+      areaStyle: { color: BAGUA_COLORS[bg.id], opacity: 0.12 },
+      itemStyle: { color: BAGUA_COLORS[bg.id] },
+      symbol: 'circle',
+      symbolSize: 6
+    }))
+  }]
+});
+
+// ===== Chart 5: Sankey =====
+const sankeyChart = echarts.init(document.getElementById('chart-sankey'));
+const pathData = [
+  { name:'天路·语言创造者', color:'#FFD700', steps:['Regex Engine','Template Engine','Programming Language','Emulator/VM'] },
+  { name:'地路·系统架构师', color:'#8B6914', steps:['Memory Allocator','Shell','Operating System','Docker'] },
+  { name:'水路·网络工程师', color:'#4169E1', steps:['Network Stack','Web Server','Web Browser','Distributed Systems'] },
+  { name:'火路·全栈创意者', color:'#FF4500', steps:['Front-end Framework','3D Renderer','Game','Physics Engine'] },
+  { name:'山路·数据守护者', color:'#708090', steps:['Git','Database','Blockchain','Search Engine'] },
+  { name:'智路·AI修行者',  color:'#00CED1', steps:['Neural Network','Visual Recognition','AI Model','Bot'] }
+];
+
+const sankeyNodes = [];
+const sankeyLinks = [];
+const nodeSet = new Set();
+
+// Add path origin nodes
+pathData.forEach(path => {
+  if (!nodeSet.has(path.name)) {
+    nodeSet.add(path.name);
+    sankeyNodes.push({ name: path.name, itemStyle: { color: path.color }});
+  }
+});
+
+// Add category nodes with stage prefix to avoid duplicates
+pathData.forEach(path => {
+  path.steps.forEach((step, si) => {
+    const stageName = '阶段' + (si+1) + ': ' + step;
+    if (!nodeSet.has(stageName)) {
+      nodeSet.add(stageName);
+      sankeyNodes.push({ name: stageName, itemStyle: { color: echarts.color.lift(path.color, -0.15) }});
+    }
+  });
+});
+
+// Add destination nodes
+const destNames = ['入门', '进阶', '精通', '大师'];
+destNames.forEach((d, i) => {
+  if (!nodeSet.has(d)) {
+    nodeSet.add(d);
+    sankeyNodes.push({ name: d, itemStyle: { color: ['#7ee787','#58a6ff','#d2a8ff','#FFD700'][i] }});
+  }
+});
+
+// Create links
+pathData.forEach(path => {
+  // Path → Step 1
+  sankeyLinks.push({
+    source: path.name,
+    target: '阶段1: ' + path.steps[0],
+    value: 8,
+    lineStyle: { color: path.color, opacity: 0.3 }
+  });
+  // Step N → Step N+1
+  for (let i = 0; i < path.steps.length - 1; i++) {
+    sankeyLinks.push({
+      source: '阶段' + (i+1) + ': ' + path.steps[i],
+      target: '阶段' + (i+2) + ': ' + path.steps[i+1],
+      value: 8 - i,
+      lineStyle: { color: path.color, opacity: 0.3 }
+    });
+  }
+  // Last step → mastery level
+  const destIdx = Math.min(3, pathData.indexOf(path) % 4);
+  sankeyLinks.push({
+    source: '阶段4: ' + path.steps[3],
+    target: destNames[3],
+    value: 4,
+    lineStyle: { color: path.color, opacity: 0.3 }
+  });
+});
+
+sankeyChart.setOption({
+  tooltip: { ...tooltipStyle, formatter: p => {
+    if (p.dataType === 'edge') {
+      return p.data.source + ' → ' + p.data.target;
+    }
+    return '<b>' + p.name + '</b>';
+  }},
+  series: [{
+    type: 'sankey',
+    data: sankeyNodes,
+    links: sankeyLinks,
+    orient: 'horizontal',
+    nodeAlign: 'justify',
+    layoutIterations: 32,
+    nodeWidth: 20,
+    nodeGap: 10,
+    label: {
+      color: '#c9d1d9', fontSize: 11,
+      formatter: p => {
+        const n = p.name;
+        return n.length > 20 ? n.slice(0, 18) + '..' : n;
+      }
+    },
+    lineStyle: { curveness: 0.5 },
+    emphasis: { focus: 'adjacency' },
+    left: 60, right: 80, top: 20, bottom: 20
+  }]
+});
+
+// ===== Resize handler =====
+window.addEventListener('resize', function() {
+  [sunburstChart, forceChart, heatmapChart, radarChart, sankeyChart].forEach(c => c.resize());
+});
+</script>
+</body>
+</html>
