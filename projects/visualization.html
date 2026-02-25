@@ -214,7 +214,7 @@
   <div class="chart-container">
     <div class="chart-title">语言 × 类别 热力图 · Heatmap</div>
     <div class="chart-desc">横轴为 12 门主要编程语言，纵轴为技术类别，颜色深浅 = 该语言在该类别的教程数量</div>
-    <div id="chart-heatmap" class="chart" style="height: 640px;"></div>
+    <div id="chart-heatmap" class="chart" style="height: 780px;"></div>
   </div>
   <div class="insight-box">
     <strong>Python 称霸 AI 领域：</strong>Neural Network (8篇)、Search Engine (5篇)、AI Model (3篇) 几乎全是 Python。
@@ -242,7 +242,7 @@
   <div class="chart-container">
     <div class="chart-title">六条修炼路径 · Sankey</div>
     <div class="chart-desc">从入门到精通的六条学习路径：天路·地路·水路·火路·山路·智路</div>
-    <div id="chart-sankey" class="chart" style="height: 560px;"></div>
+    <div id="chart-sankey" class="chart" style="height: 640px;"></div>
   </div>
   <div class="insight-box">
     <strong>天路（语言创造者）：</strong>Regex → Template → Programming Language → Emulator，从模式到语言再到虚拟机，掌握计算本质。<br>
@@ -270,7 +270,7 @@ const COLORS = {
 const tooltipStyle = {
   backgroundColor: '#161b22',
   borderColor: '#30363d',
-  textStyle: { color: '#c9d1d9', fontSize: 12 }
+  textStyle: { color: '#c9d1d9', fontSize: 13 }
 };
 
 // ===== Data =====
@@ -364,17 +364,17 @@ sunburstChart.setOption({
       {},
       {
         r0: '12%', r: '45%',
-        label: { fontSize: 14, fontWeight: 'bold', color: '#e6edf3' },
+        label: { fontSize: 15, fontWeight: 'bold', color: '#e6edf3' },
         itemStyle: { borderWidth: 2, borderColor: '#0d1117' }
       },
       {
         r0: '45%', r: '88%',
         label: {
-          fontSize: 11, color: '#c9d1d9',
-          align: 'right', padding: 3,
+          fontSize: 12, color: '#c9d1d9',
+          align: 'right', padding: 4,
           formatter: p => {
             const n = p.name;
-            return n.length > 18 ? n.slice(0, 16) + '..' : n;
+            return n.length > 22 ? n.slice(0, 20) + '..' : n;
           }
         },
         itemStyle: { borderWidth: 1, borderColor: '#0d1117' }
@@ -386,8 +386,8 @@ sunburstChart.setOption({
 // ===== Chart 2: Force Graph =====
 const forceChart = echarts.init(document.getElementById('chart-force'));
 const forceNodes = [
-  { id: 'center', name: 'Build Your\nOwn X', symbolSize: 50, category: 8,
-    itemStyle: { color: '#58a6ff' }, label: { fontSize: 14, fontWeight: 'bold' } }
+  { id: 'center', name: 'Build Your\nOwn X', symbolSize: 55, category: 8,
+    itemStyle: { color: '#58a6ff' }, label: { fontSize: 15, fontWeight: 'bold' } }
 ];
 const forceLinks = [];
 const forceCategories = baguaData.map(bg => ({
@@ -402,7 +402,7 @@ baguaData.forEach((bg, i) => {
     id: baguaId, name: bg.symbol + ' ' + bg.name + '\n' + bg.element,
     symbolSize: 30 + total * 0.3, category: i,
     itemStyle: { color: BAGUA_COLORS[baguaId] },
-    label: { fontSize: 12, fontWeight: 'bold' }
+    label: { fontSize: 13, fontWeight: 'bold' }
   });
   forceLinks.push({ source: 'center', target: baguaId, lineStyle: { width: 2, color: '#30363d' }});
 
@@ -412,7 +412,7 @@ baguaData.forEach((bg, i) => {
       id: catId, name: cat.name + '\n(' + cat.count + ')',
       symbolSize: 10 + Math.sqrt(cat.count) * 6, category: i,
       itemStyle: { color: echarts.color.lift(BAGUA_COLORS[baguaId], -0.15) },
-      label: { fontSize: 10 }
+      label: { fontSize: 11 }
     });
     forceLinks.push({ source: baguaId, target: catId, lineStyle: { width: 1, color: '#21262d' }});
   });
@@ -444,7 +444,7 @@ forceChart.setOption({
   }},
   legend: {
     data: forceCategories.slice(0,8).map(c => c.name),
-    bottom: 10, textStyle: { color: '#8b949e', fontSize: 11 },
+    bottom: 10, textStyle: { color: '#c9d1d9', fontSize: 12 },
     icon: 'circle'
   },
   series: [{
@@ -455,11 +455,14 @@ forceChart.setOption({
     categories: forceCategories,
     roam: true,
     draggable: true,
-    label: { show: true, color: '#c9d1d9', fontSize: 10 },
+    label: {
+      show: true, color: '#c9d1d9', fontSize: 11,
+      textShadowColor: 'rgba(0,0,0,0.6)', textShadowBlur: 3
+    },
     force: {
-      repulsion: 350,
-      gravity: 0.08,
-      edgeLength: [60, 160],
+      repulsion: 450,
+      gravity: 0.07,
+      edgeLength: [80, 180],
       friction: 0.6
     },
     emphasis: {
@@ -504,23 +507,23 @@ heatmapChart.setOption({
   tooltip: { ...tooltipStyle, formatter: p => {
     return '<b>' + heatLangs[p.value[0]] + '</b> × <b>' + heatCats[p.value[1]] + '</b><br/>教程数: ' + p.value[2];
   }},
-  grid: { left: 100, right: 40, top: 30, bottom: 100 },
+  grid: { left: 140, right: 40, top: 30, bottom: 110 },
   xAxis: {
     type: 'category', data: heatLangs, position: 'bottom',
-    axisLabel: { color: '#c9d1d9', fontSize: 11, rotate: 30 },
+    axisLabel: { color: '#c9d1d9', fontSize: 12, rotate: 30 },
     axisLine: { lineStyle: { color: '#30363d' }},
     splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']}}
   },
   yAxis: {
     type: 'category', data: heatCats,
-    axisLabel: { color: '#8b949e', fontSize: 10 },
+    axisLabel: { color: '#c9d1d9', fontSize: 11 },
     axisLine: { lineStyle: { color: '#30363d' }},
     splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']}}
   },
   visualMap: {
     min: 0, max: 14, calculable: true,
-    orient: 'horizontal', left: 'center', bottom: 5,
-    textStyle: { color: '#8b949e' },
+    orient: 'horizontal', left: 'center', bottom: 8,
+    textStyle: { color: '#8b949e', fontSize: 12 },
     inRange: {
       color: ['#0d1117', '#1a3a5c', '#2a5e8f', '#4169E1', '#58a6ff', '#7ee787', '#FFD700']
     }
@@ -529,7 +532,8 @@ heatmapChart.setOption({
     type: 'heatmap',
     data: heatData,
     label: {
-      show: true, fontSize: 10, color: '#e6edf3',
+      show: true, fontSize: 11, color: '#e6edf3', fontWeight: 'bold',
+      textShadowColor: 'rgba(0,0,0,0.5)', textShadowBlur: 2,
       formatter: p => p.value[2] > 0 ? p.value[2] : ''
     },
     emphasis: {
@@ -558,7 +562,7 @@ radarChart.setOption({
     splitNumber: 5,
     center: ['50%', '46%'],
     radius: '65%',
-    axisName: { color: '#c9d1d9', fontSize: 13 },
+    axisName: { color: '#e6edf3', fontSize: 14, fontWeight: 'bold' },
     splitLine: { lineStyle: { color: '#21262d' }},
     splitArea: { areaStyle: { color: ['rgba(88,166,255,0.03)', 'rgba(88,166,255,0.06)'] }},
     axisLine: { lineStyle: { color: '#30363d' }}
@@ -662,18 +666,19 @@ sankeyChart.setOption({
     orient: 'horizontal',
     nodeAlign: 'justify',
     layoutIterations: 32,
-    nodeWidth: 20,
-    nodeGap: 10,
+    nodeWidth: 22,
+    nodeGap: 14,
     label: {
-      color: '#c9d1d9', fontSize: 11,
+      color: '#e6edf3', fontSize: 12,
+      textShadowColor: 'rgba(0,0,0,0.5)', textShadowBlur: 2,
       formatter: p => {
         const n = p.name;
-        return n.length > 20 ? n.slice(0, 18) + '..' : n;
+        return n.length > 24 ? n.slice(0, 22) + '..' : n;
       }
     },
     lineStyle: { curveness: 0.5 },
     emphasis: { focus: 'adjacency' },
-    left: 60, right: 80, top: 20, bottom: 20
+    left: 70, right: 90, top: 24, bottom: 24
   }]
 });
 
