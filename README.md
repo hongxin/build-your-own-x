@@ -25,12 +25,38 @@ build-your-own-x/
 │   ├── raycaster-maze.html          # 光线投射迷宫
 │   ├── taiji-bagua.html             # 太极八卦交互可视化
 │   └── visualization.html           # ECharts 数据大屏
+├── skills/                          # ZPower 五行技能系统
+│   ├── README.md                    # 技能系统文档
+│   ├── zpower/                      # 元技能：五行总纲
+│   ├── z-observe/                   # 水·观：探索与发现
+│   ├── z-design/                    # 木·谋：规划与设计
+│   ├── z-build/                     # 火·行：构建与实现
+│   ├── z-verify/                    # 土·验：验证与诊断
+│   └── z-evolve/                    # 金·化：进化与收官
 ├── data/                            # 共享数据
 │   └── skill-tree-data.json         # 结构化数据（八卦 + 五德 + 学习路径）
 └── docs/                            # 研究文档
     ├── research-report.md           # 深度研究报告 v1
     └── research-report-v2.md        # 深度研究报告 v2
 ```
+
+## ZPower 五行技能系统
+
+一套为 Claude Code 设计的 AI 辅助开发框架，将五行哲学映射到软件开发工作流：
+
+```
+观(水) → 谋(木) → 行(火) → 验(土) → 化(金) → 循环
+```
+
+| 五行 | 技能 | 用于 |
+|------|------|------|
+| 水·观 | z-observe | 探索未知代码，建立全局认知 |
+| 木·谋 | z-design | 头脑风暴，设计方案 |
+| 火·行 | z-build | TDD 驱动，渐进式构建 |
+| 土·验 | z-verify | 望闻问切，证据先于断言 |
+| 金·化 | z-evolve | 代码审查，知识萃取 |
+
+详细文档和安装说明见 [skills/README.md](skills/README.md)。
 
 ## 设计理念
 
