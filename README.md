@@ -7,9 +7,17 @@
 ## 项目结构
 
 ```
-├── research-report.md     # 深度研究报告（八章完整分析）
-├── skill-tree-data.json   # 结构化数据（八卦分组 + 五德评分 + 学习路径）
-└── visualization.html     # 交互式可视化大屏（ECharts 暗色主题）
+├── index.html                       # 项目画廊着陆页
+├── projects/
+│   ├── braun-weather-clock.html     # 伯朗风格天气时钟
+│   ├── raycaster-maze.html          # 光线投射迷宫
+│   ├── taiji-bagua.html             # 太极八卦交互可视化
+│   └── visualization.html           # ECharts 数据大屏
+├── data/
+│   └── skill-tree-data.json         # 结构化数据（八卦 + 五德 + 学习路径）
+└── docs/
+    ├── research-report.md           # 深度研究报告 v1
+    └── research-report-v2.md        # 深度研究报告 v2
 ```
 
 ## 核心框架
@@ -54,7 +62,7 @@
 
 ## 快速开始
 
-用浏览器打开 `visualization.html` 即可查看交互式数据大屏，包含教程分布、语言矩阵、八卦雷达图等多维可视化。
+打开 `index.html` 即可浏览所有项目。在线访问：[GitHub Pages](https://hongxin.github.io/build-your-own-x/)
 
 ## 方法论
 

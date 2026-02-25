@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your Own X</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23FFCC00'/></svg>">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --surface: #FFFFFF;
+            --text: #1A1A1A;
+            --text2: #888888;
+            --text3: #BBBBBB;
+            --accent: #FFCC00;
+            --border: #E8E8E8;
+            --font: 'Helvetica Neue', -apple-system, BlinkMacSystemFont,
+                     'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0B0B0B;
+            --surface: #141414;
+            --text: #E6E6E6;
+            --text2: #666666;
+            --text3: #333333;
+            --accent: #FFCC00;
+            --border: #222222;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            min-height: 100%;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.5s ease, color 0.4s ease;
+        }
+
+        body { padding: 60px 24px 80px; }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .logo-mark {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin: 0 auto 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 200;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text2);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Theme toggle */
+        .theme-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            width: 36px;
+            height: 18px;
+            border-radius: 9px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            outline: none;
+            display: flex;
+            align-items: center;
+            transition: border-color 0.4s ease;
+            z-index: 10;
+        }
+
+        .theme-btn:hover { border-color: var(--text2); }
+
+        .theme-pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text);
+            margin-left: 3px;
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1),
+                        background-color 0.3s ease;
+        }
+
+        [data-theme="dark"] .theme-pip {
+            transform: translateX(16px);
+            background: var(--accent);
+        }
+
+        /* Section headers */
+        .section-label {
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 20px;
+            padding-left: 2px;
+        }
+
+        /* Project cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .card {
+            display: block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 24px;
+            text-decoration: none;
+            color: var(--text);
+            transition: border-color 0.2s, transform 0.2s, background-color 0.4s;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 14px;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--text2);
+            line-height: 1.6;
+        }
+
+        .card-tag {
+            display: inline-block;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: var(--text3);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-top: 12px;
+            text-transform: uppercase;
+        }
+
+        /* Docs list */
+        .doc-list {
+            list-style: none;
+        }
+
+        .doc-list li {
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.4s;
+        }
+
+        .doc-list li:last-child { border-bottom: none; }
+
+        .doc-list a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 4px;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 300;
+            transition: color 0.15s;
+        }
+
+        .doc-list a:hover { color: var(--text2); }
+
+        .doc-list .arrow {
+            color: var(--text3);
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .doc-list a:hover .arrow { transform: translateX(3px); }
+
+        /* Footer */
+        footer {
+            margin-top: 64px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text3);
+            letter-spacing: 1px;
+        }
+
+        footer a {
+            color: var(--text2);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 540px) {
+            body { padding: 48px 18px 60px; }
+            h1 { font-size: 26px; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="theme-btn" id="tb" type="button">
+    <span class="theme-pip"></span>
+</button>
+
+<div class="container">
+    <header>
+        <div class="logo-mark"></div>
+        <h1>Build Your Own X</h1>
+        <div class="subtitle">造物即修行</div>
+    </header>
+
+    <div class="section-label">Projects</div>
+    <div class="card-grid">
+        <a class="card" href="projects/braun-weather-clock.html">
+            <div class="card-icon">&#9201;</div>
+            <div class="card-title">Weather Clock</div>
+            <div class="card-desc">伯朗设计风格的天气时钟，实时天气 + 三日预报</div>
+            <span class="card-tag">Braun &middot; Open-Meteo</span>
+        </a>
+        <a class="card" href="projects/raycaster-maze.html">
+            <div class="card-icon">&#9635;</div>
+            <div class="card-title">Raycaster Maze</div>
+            <div class="card-desc">第一人称视角光线投射迷宫，Wolfenstein 3D 风格渲染</div>
+            <span class="card-tag">Canvas &middot; Raycasting</span>
+        </a>
+        <a class="card" href="projects/taiji-bagua.html">
+            <div class="card-icon">&#9776;</div>
+            <div class="card-title">Taiji Bagua</div>
+            <div class="card-desc">八卦技术映射交互式可视化，太极图 + 五德雷达</div>
+            <span class="card-tag">SVG &middot; Interactive</span>
+        </a>
+        <a class="card" href="projects/visualization.html">
+            <div class="card-icon">&#9783;</div>
+            <div class="card-title">Data Dashboard</div>
+            <div class="card-desc">Build-Your-Own-X 数据大屏，多维可视化分析</div>
+            <span class="card-tag">ECharts &middot; Dashboard</span>
+        </a>
+    </div>
+
+    <div class="section-label">Documentation</div>
+    <ul class="doc-list">
+        <li><a href="docs/research-report-v2.md">深度研究报告 v2 <span class="arrow">&rarr;</span></a></li>
+        <li><a href="docs/research-report.md">研究报告 v1 <span class="arrow">&rarr;</span></a></li>
+        <li><a href="data/skill-tree-data.json">技能树结构化数据 (JSON) <span class="arrow">&rarr;</span></a></li>
+    </ul>
+
+    <footer>
+        Inspired by <a href="https://github.com/codecrafters-io/build-your-own-x" target="_blank" rel="noopener">codecrafters-io/build-your-own-x</a>
+    </footer>
+</div>
+
+<script>
+'use strict';
+const K = 'byx_theme';
+const tb = document.getElementById('tb');
+const saved = localStorage.getItem(K);
+if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme:dark)').matches))
+    document.documentElement.dataset.theme = 'dark';
+tb.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') document.documentElement.dataset.theme = 'dark';
+    else delete document.documentElement.dataset.theme;
+    localStorage.setItem(K, next);
+});
+</script>
+</body>
+</html>
