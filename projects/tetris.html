@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>俄罗斯方块 · Tetris</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,6 +16,9 @@ body {
   align-items: center;
   min-height: 100vh;
   overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .game-wrapper {
@@ -28,13 +31,14 @@ canvas#board {
   border: 2px solid #30363d;
   border-radius: 4px;
   background: #010409;
+  display: block;
 }
 
 .side-panel {
   width: 180px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .panel-box {
@@ -76,7 +80,7 @@ canvas#next-piece {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 4px 0;
 }
 
 .toggle-track {
@@ -89,9 +93,7 @@ canvas#next-piece {
   flex-shrink: 0;
 }
 
-.toggle-track.active {
-  background: #238636;
-}
+.toggle-track.active { background: #238636; }
 
 .toggle-thumb {
   width: 16px;
@@ -104,18 +106,10 @@ canvas#next-piece {
   transition: left 0.2s;
 }
 
-.toggle-track.active .toggle-thumb {
-  left: 22px;
-}
+.toggle-track.active .toggle-thumb { left: 22px; }
 
-.mode-label {
-  font-size: 13px;
-}
-
-.mode-label .mode-name {
-  color: #58a6ff;
-  font-weight: bold;
-}
+.mode-label { font-size: 13px; }
+.mode-label .mode-name { color: #58a6ff; font-weight: bold; }
 
 .btn {
   width: 100%;
@@ -131,13 +125,15 @@ canvas#next-piece {
 }
 
 .btn:hover { background: #30363d; }
+.btn-primary { background: #238636; border-color: #2ea043; }
+.btn-primary:hover { background: #2ea043; }
 
-.btn-primary {
-  background: #238636;
-  border-color: #2ea043;
+.btn-row {
+  display: flex;
+  gap: 8px;
 }
 
-.btn-primary:hover { background: #2ea043; }
+.btn-row .btn { flex: 1; }
 
 .controls-help {
   font-size: 11px;
@@ -158,7 +154,7 @@ canvas#next-piece {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(1, 4, 9, 0.85);
+  background: rgba(1, 4, 9, 0.88);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -170,10 +166,7 @@ canvas#next-piece {
   transition: opacity 0.3s;
 }
 
-.game-over-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
+.game-over-overlay.visible { opacity: 1; pointer-events: auto; }
 
 .game-over-overlay h2 {
   font-size: 28px;
@@ -186,15 +179,66 @@ canvas#next-piece {
   color: #58a6ff;
 }
 
-.board-wrapper {
-  position: relative;
-}
+.board-wrapper { position: relative; }
 
 .speed-indicator {
   font-size: 11px;
   color: #6e7681;
   text-align: center;
   margin-top: 4px;
+}
+
+/* Mobile touch controls */
+.touch-controls {
+  display: none;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.touch-btn {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  background: #161b22;
+  color: #c9d1d9;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+
+.touch-btn:active { background: #30363d; }
+
+.touch-btn-wide {
+  width: 72px;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .game-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  canvas#board {
+    width: min(85vw, 300px);
+    height: auto;
+  }
+  .side-panel {
+    width: min(85vw, 300px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .side-panel > * { flex: 1; min-width: 120px; }
+  .controls-help { display: none; }
+  .touch-controls { display: flex; }
 }
 </style>
 </head>
@@ -210,6 +254,14 @@ canvas#next-piece {
       </div>
     </div>
     <div class="speed-indicator" id="speed-info"></div>
+    <!-- Mobile touch controls -->
+    <div class="touch-controls" id="touch-controls">
+      <button class="touch-btn" data-action="left">&#9664;</button>
+      <button class="touch-btn" data-action="rotate">&#8635;</button>
+      <button class="touch-btn" data-action="down">&#9660;</button>
+      <button class="touch-btn" data-action="right">&#9654;</button>
+      <button class="touch-btn touch-btn-wide" data-action="drop">DROP</button>
+    </div>
   </div>
 
   <div class="side-panel">
@@ -231,14 +283,20 @@ canvas#next-piece {
         <div class="toggle-track" id="toggle-track">
           <div class="toggle-thumb"></div>
         </div>
-        <div class="mode-label">
-          <span class="mode-name" id="mode-name">HUMAN</span>
+        <div class="mode-label"><span class="mode-name" id="mode-name">HUMAN</span></div>
+      </div>
+      <div class="mode-toggle" id="sound-toggle">
+        <div class="toggle-track active" id="sound-track">
+          <div class="toggle-thumb"></div>
         </div>
+        <div class="mode-label"><span class="mode-name" id="sound-name">SOUND</span></div>
       </div>
     </div>
 
-    <button class="btn btn-primary" id="btn-start">Start / Restart</button>
-    <button class="btn" id="btn-pause">Pause</button>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-start">Start</button>
+      <button class="btn" id="btn-pause">Pause</button>
+    </div>
 
     <div class="panel-box">
       <h3>Controls</h3>
@@ -248,7 +306,8 @@ canvas#next-piece {
         <kbd>↑</kbd> Rotate<br>
         <kbd>Space</kbd> Hard drop<br>
         <kbd>A</kbd> Toggle AI<br>
-        <kbd>P</kbd> Pause
+        <kbd>P</kbd> Pause<br>
+        <kbd>M</kbd> Mute
       </div>
     </div>
   </div>
@@ -270,39 +329,183 @@ const COLORS = [
   '#f0a000', // L - orange
 ];
 
-// Tetromino shapes (each rotation state)
+// Brighter highlights for each color
+const HIGHLIGHTS = [
+  null,
+  '#66ffff', '#ffff66', '#cc66ff', '#66ff66', '#ff6666', '#6666ff', '#ffcc66'
+];
+
 const SHAPES = {
   I: [[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
       [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
       [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],
       [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]],
-  O: [[[1,1],[1,1]],
-      [[1,1],[1,1]],
-      [[1,1],[1,1]],
-      [[1,1],[1,1]]],
-  T: [[[0,1,0],[1,1,1],[0,0,0]],
-      [[0,1,0],[0,1,1],[0,1,0]],
-      [[0,0,0],[1,1,1],[0,1,0]],
-      [[0,1,0],[1,1,0],[0,1,0]]],
-  S: [[[0,1,1],[1,1,0],[0,0,0]],
-      [[0,1,0],[0,1,1],[0,0,1]],
-      [[0,0,0],[0,1,1],[1,1,0]],
-      [[1,0,0],[1,1,0],[0,1,0]]],
-  Z: [[[1,1,0],[0,1,1],[0,0,0]],
-      [[0,0,1],[0,1,1],[0,1,0]],
-      [[0,0,0],[1,1,0],[0,1,1]],
-      [[0,1,0],[1,1,0],[1,0,0]]],
-  J: [[[1,0,0],[1,1,1],[0,0,0]],
-      [[0,1,1],[0,1,0],[0,1,0]],
-      [[0,0,0],[1,1,1],[0,0,1]],
-      [[0,1,0],[0,1,0],[1,1,0]]],
-  L: [[[0,0,1],[1,1,1],[0,0,0]],
-      [[0,1,0],[0,1,0],[0,1,1]],
-      [[0,0,0],[1,1,1],[1,0,0]],
-      [[1,1,0],[0,1,0],[0,1,0]]]
+  O: [[[1,1],[1,1]],[[1,1],[1,1]],[[1,1],[1,1]],[[1,1],[1,1]]],
+  T: [[[0,1,0],[1,1,1],[0,0,0]],[[0,1,0],[0,1,1],[0,1,0]],
+      [[0,0,0],[1,1,1],[0,1,0]],[[0,1,0],[1,1,0],[0,1,0]]],
+  S: [[[0,1,1],[1,1,0],[0,0,0]],[[0,1,0],[0,1,1],[0,0,1]],
+      [[0,0,0],[0,1,1],[1,1,0]],[[1,0,0],[1,1,0],[0,1,0]]],
+  Z: [[[1,1,0],[0,1,1],[0,0,0]],[[0,0,1],[0,1,1],[0,1,0]],
+      [[0,0,0],[1,1,0],[0,1,1]],[[0,1,0],[1,1,0],[1,0,0]]],
+  J: [[[1,0,0],[1,1,1],[0,0,0]],[[0,1,1],[0,1,0],[0,1,0]],
+      [[0,0,0],[1,1,1],[0,0,1]],[[0,1,0],[0,1,0],[1,1,0]]],
+  L: [[[0,0,1],[1,1,1],[0,0,0]],[[0,1,0],[0,1,0],[0,1,1]],
+      [[0,0,0],[1,1,1],[1,0,0]],[[1,1,0],[0,1,0],[0,1,0]]]
 };
 
 const PIECE_NAMES = ['I','O','T','S','Z','J','L'];
+
+// ===== Audio Engine (Web Audio API) =====
+let audioCtx = null;
+let soundEnabled = true;
+let masterGain = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.3;
+  masterGain.connect(audioCtx.destination);
+}
+
+function playTone(freq, duration, type, vol) {
+  if (!soundEnabled || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || 'square';
+  osc.frequency.value = freq;
+  gain.gain.value = vol || 0.15;
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function sfxMove() { playTone(200, 0.05, 'square', 0.08); }
+function sfxRotate() { playTone(300, 0.08, 'square', 0.1); }
+
+function sfxDrop() {
+  playTone(150, 0.1, 'triangle', 0.2);
+  setTimeout(() => playTone(100, 0.15, 'triangle', 0.15), 50);
+}
+
+function sfxLineClear(count) {
+  const base = 400;
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      playTone(base + i * 100, 0.15, 'square', 0.15);
+      playTone((base + i * 100) * 1.5, 0.15, 'sine', 0.08);
+    }, i * 80);
+  }
+  if (count === 4) {
+    // Tetris! Extra fanfare
+    setTimeout(() => {
+      playTone(800, 0.2, 'square', 0.2);
+      playTone(1000, 0.3, 'sine', 0.12);
+    }, 350);
+  }
+}
+
+function sfxGameOver() {
+  const notes = [400, 350, 300, 200, 150];
+  notes.forEach((f, i) => {
+    setTimeout(() => playTone(f, 0.25, 'sawtooth', 0.12), i * 120);
+  });
+}
+
+function sfxLevelUp() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => {
+    setTimeout(() => playTone(f, 0.12, 'sine', 0.15), i * 60);
+  });
+}
+
+// Simple background music
+let bgMusicInterval = null;
+const bgNotes = [262, 294, 330, 349, 330, 294, 262, 247, 220, 247, 262, 294, 262, 247, 220, 220];
+let bgNoteIdx = 0;
+
+function startBgMusic() {
+  stopBgMusic();
+  bgNoteIdx = 0;
+  bgMusicInterval = setInterval(() => {
+    if (!soundEnabled || paused || gameOver) return;
+    playTone(bgNotes[bgNoteIdx % bgNotes.length], 0.18, 'sine', 0.04);
+    playTone(bgNotes[bgNoteIdx % bgNotes.length] * 0.5, 0.18, 'triangle', 0.02);
+    bgNoteIdx++;
+  }, 280);
+}
+
+function stopBgMusic() {
+  if (bgMusicInterval) { clearInterval(bgMusicInterval); bgMusicInterval = null; }
+}
+
+// ===== Particle System =====
+const particles = [];
+
+function spawnParticles(row, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * COLS * CELL,
+      y: row * CELL + CELL / 2,
+      vx: (Math.random() - 0.5) * 8,
+      vy: (Math.random() - 0.5) * 6 - 2,
+      life: 1.0,
+      decay: 0.015 + Math.random() * 0.02,
+      size: 2 + Math.random() * 3,
+      color: COLORS[1 + Math.floor(Math.random() * 7)]
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15; // gravity
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ===== Line Clear Animation =====
+let clearingRows = [];       // rows being animated
+let clearAnimProgress = 0;   // 0 → 1
+const CLEAR_ANIM_DURATION = 300; // ms
+let clearAnimStart = 0;
+
+// ===== Screen Shake =====
+let shakeAmount = 0;
+let shakeDuration = 0;
+let shakeStart = 0;
+
+function triggerShake(amount, duration) {
+  shakeAmount = amount;
+  shakeDuration = duration;
+  shakeStart = performance.now();
+}
+
+function getShakeOffset(timestamp) {
+  if (shakeDuration <= 0) return { x: 0, y: 0 };
+  const elapsed = timestamp - shakeStart;
+  if (elapsed > shakeDuration) { shakeDuration = 0; return { x: 0, y: 0 }; }
+  const decay = 1 - elapsed / shakeDuration;
+  return {
+    x: (Math.random() - 0.5) * shakeAmount * decay * 2,
+    y: (Math.random() - 0.5) * shakeAmount * decay * 2
+  };
+}
 
 // ===== Game State =====
 let board = [];
@@ -318,7 +521,24 @@ let running = false;
 let dropInterval = 800;
 let lastDrop = 0;
 let animFrameId = null;
-let aiTimer = null;
+let prevLevel = 1;
+
+// 7-bag randomizer for fairer piece distribution
+let pieceBag = [];
+
+function refillBag() {
+  pieceBag = [...PIECE_NAMES];
+  // Fisher-Yates shuffle
+  for (let i = pieceBag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pieceBag[i], pieceBag[j]] = [pieceBag[j], pieceBag[i]];
+  }
+}
+
+function nextFromBag() {
+  if (pieceBag.length === 0) refillBag();
+  return pieceBag.pop();
+}
 
 // ===== Canvas Setup =====
 const canvas = document.getElementById('board');
@@ -357,35 +577,55 @@ function lockPiece() {
       board[nr][currentPiece.col + c] = currentPiece.colorIdx;
     }
   }
-  clearLines();
+  sfxDrop();
+  checkAndClearLines();
 }
 
-function clearLines() {
-  let cleared = 0;
-  for (let r = ROWS - 1; r >= 0; r--) {
+function checkAndClearLines() {
+  clearingRows = [];
+  for (let r = 0; r < ROWS; r++) {
     if (board[r].every(c => c !== 0)) {
-      board.splice(r, 1);
-      board.unshift(new Array(COLS).fill(0));
-      cleared++;
-      r++; // recheck this row
+      clearingRows.push(r);
     }
   }
-  if (cleared > 0) {
-    const points = [0, 100, 300, 500, 800];
-    score += (points[cleared] || 800) * level;
-    lines += cleared;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(50, 800 - (level - 1) * 70);
-    updateStats();
+  if (clearingRows.length > 0) {
+    // Start animation
+    clearAnimProgress = 0;
+    clearAnimStart = performance.now();
+    sfxLineClear(clearingRows.length);
+    // Spawn particles for each cleared row
+    for (const row of clearingRows) {
+      spawnParticles(row, 15 + clearingRows.length * 5);
+    }
+    if (clearingRows.length === 4) triggerShake(6, 300);
+    else if (clearingRows.length >= 2) triggerShake(3, 150);
   }
+}
+
+function finishLineClear() {
+  const cleared = clearingRows.length;
+  // Remove rows
+  for (const r of clearingRows.sort((a, b) => b - a)) {
+    board.splice(r, 1);
+    board.unshift(new Array(COLS).fill(0));
+  }
+  clearingRows = [];
+
+  const points = [0, 100, 300, 500, 800];
+  score += (points[cleared] || 800) * level;
+  lines += cleared;
+  prevLevel = level;
+  level = Math.floor(lines / 10) + 1;
+  dropInterval = Math.max(50, 800 - (level - 1) * 70);
+  if (level > prevLevel) sfxLevelUp();
+  updateStats();
 }
 
 // ===== Piece =====
 function createPiece(name) {
   const idx = PIECE_NAMES.indexOf(name) + 1;
   const shapes = SHAPES[name];
-  let rot = 0;
-  const piece = {
+  return {
     name,
     colorIdx: idx,
     row: name === 'I' ? -1 : 0,
@@ -398,7 +638,6 @@ function createPiece(name) {
         this.rotation = newRot;
         return true;
       }
-      // Wall kick: try shifting left/right
       for (const offset of [1, -1, 2, -2]) {
         if (isValid(shapes[newRot], this.row, this.col + offset)) {
           this.rotation = newRot;
@@ -409,16 +648,11 @@ function createPiece(name) {
       return false;
     }
   };
-  return piece;
-}
-
-function randomPiece() {
-  return createPiece(PIECE_NAMES[Math.floor(Math.random() * PIECE_NAMES.length)]);
 }
 
 function spawnPiece() {
-  currentPiece = nextPiece || randomPiece();
-  nextPiece = randomPiece();
+  currentPiece = nextPiece || createPiece(nextFromBag());
+  nextPiece = createPiece(nextFromBag());
   if (!isValid(currentPiece.shape(), currentPiece.row, currentPiece.col)) {
     endGame();
   }
@@ -429,6 +663,7 @@ function spawnPiece() {
 function moveLeft() {
   if (isValid(currentPiece.shape(), currentPiece.row, currentPiece.col - 1)) {
     currentPiece.col--;
+    sfxMove();
     return true;
   }
   return false;
@@ -437,6 +672,7 @@ function moveLeft() {
 function moveRight() {
   if (isValid(currentPiece.shape(), currentPiece.row, currentPiece.col + 1)) {
     currentPiece.col++;
+    sfxMove();
     return true;
   }
   return false;
@@ -457,8 +693,9 @@ function hardDrop() {
     dropped++;
   }
   score += dropped * 2;
+  triggerShake(4, 120);
   lockPiece();
-  spawnPiece();
+  if (!gameOver && clearingRows.length === 0) spawnPiece();
   updateStats();
 }
 
@@ -471,23 +708,40 @@ function getGhostRow() {
 }
 
 // ===== Rendering =====
-function drawCell(context, x, y, colorIdx, alpha) {
+function drawCell(context, x, y, colorIdx, alpha, cellSize) {
+  const cs = cellSize || CELL;
   const color = COLORS[colorIdx];
   if (!color) return;
   context.globalAlpha = alpha || 1;
+
+  // Main fill
   context.fillStyle = color;
-  context.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
-  // Highlight
-  context.fillStyle = 'rgba(255,255,255,0.15)';
-  context.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, 3);
-  context.fillRect(x * CELL + 1, y * CELL + 1, 3, CELL - 2);
+  context.fillRect(x * cs + 1, y * cs + 1, cs - 2, cs - 2);
+
+  // Top-left highlight
+  const hl = HIGHLIGHTS[colorIdx] || 'rgba(255,255,255,0.3)';
+  context.fillStyle = hl;
+  context.globalAlpha = (alpha || 1) * 0.35;
+  context.fillRect(x * cs + 1, y * cs + 1, cs - 2, 3);
+  context.fillRect(x * cs + 1, y * cs + 1, 3, cs - 2);
+
+  // Bottom-right shadow
+  context.fillStyle = 'rgba(0,0,0,0.3)';
+  context.globalAlpha = (alpha || 1) * 0.3;
+  context.fillRect(x * cs + 1, y * cs + cs - 3, cs - 2, 2);
+  context.fillRect(x * cs + cs - 3, y * cs + 1, 2, cs - 2);
+
   context.globalAlpha = 1;
 }
 
-function drawBoard() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawBoard(timestamp) {
+  const shake = getShakeOffset(timestamp || 0);
+  ctx.save();
+  ctx.translate(shake.x, shake.y);
 
-  // Grid lines
+  ctx.clearRect(-10, -10, canvas.width + 20, canvas.height + 20);
+
+  // Grid
   ctx.strokeStyle = '#161b22';
   ctx.lineWidth = 0.5;
   for (let r = 0; r <= ROWS; r++) {
@@ -500,49 +754,74 @@ function drawBoard() {
   // Locked cells
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (board[r][c]) drawCell(ctx, c, r, board[r][c]);
-    }
-  }
-
-  if (!currentPiece || gameOver) return;
-
-  // Ghost piece
-  const ghostRow = getGhostRow();
-  const shape = currentPiece.shape();
-  for (let r = 0; r < shape.length; r++) {
-    for (let c = 0; c < shape[r].length; c++) {
-      if (shape[r][c] && ghostRow + r >= 0) {
-        drawCell(ctx, currentPiece.col + c, ghostRow + r, currentPiece.colorIdx, 0.2);
+      if (board[r][c]) {
+        // If this row is being cleared, flash it
+        if (clearingRows.includes(r)) {
+          const flash = Math.sin(clearAnimProgress * Math.PI * 3);
+          ctx.globalAlpha = 0.3 + flash * 0.7;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+          ctx.globalAlpha = 1;
+        } else {
+          drawCell(ctx, c, r, board[r][c]);
+        }
       }
     }
   }
 
-  // Current piece
-  for (let r = 0; r < shape.length; r++) {
-    for (let c = 0; c < shape[r].length; c++) {
-      if (shape[r][c] && currentPiece.row + r >= 0) {
-        drawCell(ctx, currentPiece.col + c, currentPiece.row + r, currentPiece.colorIdx);
+  if (currentPiece && !gameOver && clearingRows.length === 0) {
+    // Ghost piece
+    const ghostRow = getGhostRow();
+    const shape = currentPiece.shape();
+    for (let r = 0; r < shape.length; r++) {
+      for (let c = 0; c < shape[r].length; c++) {
+        if (shape[r][c] && ghostRow + r >= 0) {
+          ctx.globalAlpha = 0.18;
+          ctx.strokeStyle = COLORS[currentPiece.colorIdx];
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(
+            (currentPiece.col + c) * CELL + 2,
+            (ghostRow + r) * CELL + 2,
+            CELL - 4, CELL - 4
+          );
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+
+    // Current piece
+    for (let r = 0; r < shape.length; r++) {
+      for (let c = 0; c < shape[r].length; c++) {
+        if (shape[r][c] && currentPiece.row + r >= 0) {
+          drawCell(ctx, currentPiece.col + c, currentPiece.row + r, currentPiece.colorIdx);
+        }
       }
     }
   }
+
+  // Particles
+  drawParticles();
+
+  ctx.restore();
 }
 
 function drawNext() {
   nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
   if (!nextPiece) return;
   const shape = SHAPES[nextPiece.name][0];
-  const cellSize = 24;
-  const offsetX = (nextCanvas.width - shape[0].length * cellSize) / 2;
-  const offsetY = (nextCanvas.height - shape.length * cellSize) / 2;
+  const cs = 24;
+  const offsetX = (nextCanvas.width - shape[0].length * cs) / 2;
+  const offsetY = (nextCanvas.height - shape.length * cs) / 2;
 
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[r].length; c++) {
       if (!shape[r][c]) continue;
       const color = COLORS[nextPiece.colorIdx];
       nextCtx.fillStyle = color;
-      nextCtx.fillRect(offsetX + c * cellSize + 1, offsetY + r * cellSize + 1, cellSize - 2, cellSize - 2);
-      nextCtx.fillStyle = 'rgba(255,255,255,0.15)';
-      nextCtx.fillRect(offsetX + c * cellSize + 1, offsetY + r * cellSize + 1, cellSize - 2, 2);
+      nextCtx.fillRect(offsetX + c * cs + 1, offsetY + r * cs + 1, cs - 2, cs - 2);
+      nextCtx.fillStyle = 'rgba(255,255,255,0.2)';
+      nextCtx.fillRect(offsetX + c * cs + 1, offsetY + r * cs + 1, cs - 2, 2);
+      nextCtx.fillRect(offsetX + c * cs + 1, offsetY + r * cs + 1, 2, cs - 2);
     }
   }
 }
@@ -554,12 +833,14 @@ function updateStats() {
   document.getElementById('speed-info').textContent = `Drop: ${dropInterval}ms · Level ${level}`;
 }
 
-// ===== AI =====
+// ===== AI (Enhanced Pierre Dellacherie) =====
 function aiEvaluate(testBoard) {
   let aggregateHeight = 0;
   let completeLines = 0;
   let holes = 0;
   let bumpiness = 0;
+  let coveredHoles = 0; // holes with blocks directly above
+  let wellSum = 0;      // deep wells
 
   const heights = [];
   for (let c = 0; c < COLS; c++) {
@@ -571,12 +852,18 @@ function aiEvaluate(testBoard) {
     aggregateHeight += h;
   }
 
-  // Holes: empty cell with a filled cell above it
+  // Holes and covered holes
   for (let c = 0; c < COLS; c++) {
     let blockFound = false;
+    let blocksAbove = 0;
     for (let r = 0; r < ROWS; r++) {
-      if (testBoard[r][c]) blockFound = true;
-      else if (blockFound) holes++;
+      if (testBoard[r][c]) {
+        blockFound = true;
+        blocksAbove++;
+      } else if (blockFound) {
+        holes++;
+        coveredHoles += blocksAbove;
+      }
     }
   }
 
@@ -590,48 +877,33 @@ function aiEvaluate(testBoard) {
     bumpiness += Math.abs(heights[c] - heights[c + 1]);
   }
 
-  // Weights (Pierre Dellacherie inspired)
-  return -0.51 * aggregateHeight + 0.76 * completeLines - 0.36 * holes - 0.18 * bumpiness;
-}
+  // Wells: a cell with both left and right neighbors higher
+  for (let c = 0; c < COLS; c++) {
+    const left = c > 0 ? heights[c - 1] : ROWS;
+    const right = c < COLS - 1 ? heights[c + 1] : ROWS;
+    const depth = Math.min(left, right) - heights[c];
+    if (depth > 0) wellSum += depth;
+  }
 
-function aiFindBest() {
-  if (!currentPiece) return null;
-  let bestScore = -Infinity;
-  let bestMove = null;
-
-  for (let rot = 0; rot < 4; rot++) {
-    const shape = SHAPES[currentPiece.name][rot];
-    const width = shape[0].length;
-
-    for (let col = -2; col < COLS + 2; col++) {
-      // Find landing row
-      let row = currentPiece.row;
-      if (!isValidShape(shape, row, col)) continue;
-      while (isValidShape(shape, row + 1, col)) row++;
-
-      // Simulate placement
-      const testBoard = board.map(r => [...r]);
-      let valid = true;
-      for (let r = 0; r < shape.length; r++) {
-        for (let c = 0; c < shape[r].length; c++) {
-          if (!shape[r][c]) continue;
-          const nr = row + r;
-          const nc = col + c;
-          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) { valid = false; break; }
-          testBoard[nr][nc] = currentPiece.colorIdx;
-        }
-        if (!valid) break;
-      }
-      if (!valid) continue;
-
-      const sc = aiEvaluate(testBoard);
-      if (sc > bestScore) {
-        bestScore = sc;
-        bestMove = { rotation: rot, col, row };
-      }
+  // Row transitions: alternating filled/empty in same row (measure roughness)
+  let rowTransitions = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 1; c++) {
+      if ((testBoard[r][c] !== 0) !== (testBoard[r][c + 1] !== 0)) rowTransitions++;
     }
   }
-  return bestMove;
+
+  // Max height penalty
+  const maxH = Math.max(...heights);
+
+  return -0.51 * aggregateHeight
+       + 0.76 * completeLines
+       - 0.36 * holes
+       - 0.18 * bumpiness
+       - 0.10 * coveredHoles
+       - 0.05 * wellSum
+       - 0.04 * rowTransitions
+       - 0.02 * maxH;
 }
 
 function isValidShape(shape, row, col) {
@@ -647,23 +919,96 @@ function isValidShape(shape, row, col) {
   return true;
 }
 
+function simulatePlacement(shape, row, col, colorIdx) {
+  const testBoard = board.map(r => [...r]);
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (!shape[r][c]) continue;
+      const nr = row + r;
+      const nc = col + c;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return null;
+      testBoard[nr][nc] = colorIdx;
+    }
+  }
+  return testBoard;
+}
+
+function aiFindBest() {
+  if (!currentPiece) return null;
+  let bestScore = -Infinity;
+  let bestMove = null;
+
+  // Try all rotations and positions for current piece
+  for (let rot = 0; rot < 4; rot++) {
+    const shape = SHAPES[currentPiece.name][rot];
+
+    for (let col = -2; col < COLS + 2; col++) {
+      let row = currentPiece.row;
+      if (!isValidShape(shape, row, col)) continue;
+      while (isValidShape(shape, row + 1, col)) row++;
+
+      const testBoard = simulatePlacement(shape, row, col, currentPiece.colorIdx);
+      if (!testBoard) continue;
+
+      // Look-ahead: also evaluate best placement of next piece
+      let sc = aiEvaluate(testBoard);
+
+      // Lightweight next-piece look-ahead
+      if (nextPiece) {
+        const savedBoard = board;
+        // Temporarily use testBoard (with cleared lines) for next piece eval
+        const clearedTest = testBoard.map(r => [...r]);
+        // Clear full lines in clearedTest
+        for (let tr = clearedTest.length - 1; tr >= 0; tr--) {
+          if (clearedTest[tr].every(c => c !== 0)) {
+            clearedTest.splice(tr, 1);
+            clearedTest.unshift(new Array(COLS).fill(0));
+          }
+        }
+
+        let bestNext = -Infinity;
+        board = clearedTest;
+        for (let nRot = 0; nRot < 4; nRot++) {
+          const nShape = SHAPES[nextPiece.name][nRot];
+          for (let nCol = -1; nCol < COLS + 1; nCol++) {
+            let nRow = 0;
+            if (!isValidShape(nShape, nRow, nCol)) continue;
+            while (isValidShape(nShape, nRow + 1, nCol)) nRow++;
+            const nBoard = simulatePlacement(nShape, nRow, nCol, nextPiece.colorIdx);
+            if (!nBoard) continue;
+            bestNext = Math.max(bestNext, aiEvaluate(nBoard));
+          }
+        }
+        board = savedBoard;
+        if (bestNext > -Infinity) sc += bestNext * 0.3; // weight future
+      }
+
+      if (sc > bestScore) {
+        bestScore = sc;
+        bestMove = { rotation: rot, col, row };
+      }
+    }
+  }
+  return bestMove;
+}
+
 let aiTarget = null;
 let aiStepTimer = 0;
 
 function aiUpdate(timestamp) {
-  if (!aiMode || !currentPiece || gameOver || paused) return;
+  if (!aiMode || !currentPiece || gameOver || paused || clearingRows.length > 0) return;
 
   if (!aiTarget) {
     aiTarget = aiFindBest();
     if (!aiTarget) { hardDrop(); return; }
   }
 
-  // Step AI: rotate first, then move, then drop
-  if (timestamp - aiStepTimer < 50) return;
+  if (timestamp - aiStepTimer < 40) return;
   aiStepTimer = timestamp;
 
   if (currentPiece.rotation !== aiTarget.rotation) {
     currentPiece.rotate(1);
+    sfxRotate();
   } else if (currentPiece.col < aiTarget.col) {
     moveRight();
   } else if (currentPiece.col > aiTarget.col) {
@@ -679,46 +1024,66 @@ function gameLoop(timestamp) {
   if (!running) return;
   animFrameId = requestAnimationFrame(gameLoop);
 
-  if (gameOver || paused) { drawBoard(); return; }
+  if (gameOver || paused) { drawBoard(timestamp); return; }
 
-  if (aiMode) {
-    aiUpdate(timestamp);
+  // Line clear animation
+  if (clearingRows.length > 0) {
+    clearAnimProgress = Math.min(1, (timestamp - clearAnimStart) / CLEAR_ANIM_DURATION);
+    updateParticles();
+    drawBoard(timestamp);
+    if (clearAnimProgress >= 1) {
+      finishLineClear();
+      spawnPiece();
+    }
+    return;
   }
+
+  updateParticles();
+
+  if (aiMode) aiUpdate(timestamp);
 
   if (timestamp - lastDrop > dropInterval) {
     lastDrop = timestamp;
     if (!moveDown()) {
       lockPiece();
-      if (!gameOver) spawnPiece();
+      if (!gameOver && clearingRows.length === 0) spawnPiece();
     }
     updateStats();
   }
 
-  drawBoard();
+  drawBoard(timestamp);
 }
 
 // ===== Game Control =====
 function startGame() {
+  initAudio();
   createBoard();
-  score = 0; lines = 0; level = 1;
+  score = 0; lines = 0; level = 1; prevLevel = 1;
   dropInterval = 800;
   gameOver = false;
   paused = false;
   aiTarget = null;
   currentPiece = null;
   nextPiece = null;
+  pieceBag = [];
+  particles.length = 0;
+  clearingRows = [];
   document.getElementById('game-over').classList.remove('visible');
+  document.getElementById('btn-pause').textContent = 'Pause';
   updateStats();
   spawnPiece();
   running = true;
   lastDrop = performance.now();
   if (animFrameId) cancelAnimationFrame(animFrameId);
   animFrameId = requestAnimationFrame(gameLoop);
+  startBgMusic();
 }
 
 function endGame() {
   gameOver = true;
   running = false;
+  stopBgMusic();
+  sfxGameOver();
   document.getElementById('game-over').classList.add('visible');
   document.getElementById('final-score').textContent = `Score: ${score.toLocaleString()} · Lines: ${lines}`;
 }
@@ -733,38 +1098,128 @@ function togglePause() {
 function toggleAI() {
   aiMode = !aiMode;
   aiTarget = null;
-  const track = document.getElementById('toggle-track');
-  const name = document.getElementById('mode-name');
-  track.classList.toggle('active', aiMode);
-  name.textContent = aiMode ? 'AI' : 'HUMAN';
+  document.getElementById('toggle-track').classList.toggle('active', aiMode);
+  document.getElementById('mode-name').textContent = aiMode ? 'AI' : 'HUMAN';
 }
 
-// ===== Input =====
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const track = document.getElementById('sound-track');
+  const name = document.getElementById('sound-name');
+  track.classList.toggle('active', soundEnabled);
+  name.textContent = soundEnabled ? 'SOUND' : 'MUTED';
+  if (!soundEnabled) stopBgMusic();
+  else if (running && !gameOver) startBgMusic();
+}
+
+// ===== Keyboard Input =====
 document.addEventListener('keydown', e => {
   if (e.key === 'a' || e.key === 'A') { toggleAI(); return; }
   if (e.key === 'p' || e.key === 'P') { togglePause(); return; }
+  if (e.key === 'm' || e.key === 'M') { toggleSound(); return; }
 
-  if (!currentPiece || gameOver || paused || aiMode) return;
+  if (!currentPiece || gameOver || paused || aiMode || clearingRows.length > 0) return;
 
   switch (e.key) {
-    case 'ArrowLeft': moveLeft(); break;
+    case 'ArrowLeft':  moveLeft(); break;
     case 'ArrowRight': moveRight(); break;
-    case 'ArrowDown': moveDown(); score += 1; updateStats(); break;
-    case 'ArrowUp': currentPiece.rotate(1); break;
-    case ' ': hardDrop(); break;
+    case 'ArrowDown':  moveDown(); score += 1; updateStats(); break;
+    case 'ArrowUp':    currentPiece.rotate(1); sfxRotate(); break;
+    case ' ':          hardDrop(); break;
+    default: return;
   }
   e.preventDefault();
 });
 
+// ===== Touch Input =====
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+let touchMoved = false;
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  initAudio();
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  touchStartTime = Date.now();
+  touchMoved = false;
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!currentPiece || gameOver || paused || aiMode || clearingRows.length > 0) return;
+  const t = e.touches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const threshold = 30;
+
+  if (Math.abs(dx) > threshold) {
+    if (dx > 0) moveRight(); else moveLeft();
+    touchStartX = t.clientX;
+    touchMoved = true;
+  }
+  if (dy > threshold) {
+    moveDown();
+    score += 1;
+    updateStats();
+    touchStartY = t.clientY;
+    touchMoved = true;
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!currentPiece || gameOver || paused || aiMode || clearingRows.length > 0) return;
+  const elapsed = Date.now() - touchStartTime;
+
+  if (!touchMoved && elapsed < 250) {
+    // Tap = rotate
+    currentPiece.rotate(1);
+    sfxRotate();
+  }
+
+  const t = e.changedTouches[0];
+  const dy = t.clientY - touchStartY;
+  if (dy < -60 && elapsed < 400) {
+    // Swipe up = hard drop
+    hardDrop();
+  }
+}, { passive: false });
+
+// Mobile touch buttons
+document.querySelectorAll('.touch-btn').forEach(btn => {
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    initAudio();
+    if (!currentPiece || gameOver || paused || aiMode || clearingRows.length > 0) return;
+    const action = btn.dataset.action;
+    switch (action) {
+      case 'left':   moveLeft(); break;
+      case 'right':  moveRight(); break;
+      case 'down':   moveDown(); score += 1; updateStats(); break;
+      case 'rotate': currentPiece.rotate(1); sfxRotate(); break;
+      case 'drop':   hardDrop(); break;
+    }
+  }, { passive: false });
+});
+
 // ===== UI Buttons =====
-document.getElementById('btn-start').addEventListener('click', startGame);
+document.getElementById('btn-start').addEventListener('click', () => { initAudio(); startGame(); });
 document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('mode-toggle').addEventListener('click', toggleAI);
+document.getElementById('sound-toggle').addEventListener('click', toggleSound);
+
+// Show touch controls on touch devices
+if ('ontouchstart' in window) {
+  document.getElementById('touch-controls').style.display = 'flex';
+}
 
 // ===== Init =====
 updateStats();
-drawBoard();
-// Auto-start
+drawBoard(0);
 startGame();
 </script>
 </body>
