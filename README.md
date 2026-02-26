@@ -1,5 +1,7 @@
 # Build Your Own X：造物即修行
 
+**[English](README_EN.md)** | 中文
+
 > "What I cannot create, I do not understand." — Richard Feynman
 
 受 [build-your-own-x](https://github.com/codecrafters-io/build-your-own-x) 启发，从零开始亲手构建各种有趣的小项目——用造物理解原理。每个项目都是独立的单文件 HTML 应用，零依赖，浏览器直接打开即可运行。
@@ -10,6 +12,7 @@
 
 | 项目 | 简介 | 关键技术 |
 |------|------|---------|
+| [Tetris](projects/tetris.html) | 网页版俄罗斯方块，支持人类/AI 实时切换，音效粒子特效，触屏适配 | Canvas · Web Audio API · AI 评估算法 · Touch Events |
 | [Weather Clock](projects/braun-weather-clock.html) | 伯朗(Braun)设计风格的天气时钟，实时天气 + 三日预报，明暗双主题 | Open-Meteo API · Geolocation · CSS Variables |
 | [Raycaster Maze](projects/raycaster-maze.html) | 第一人称视角光线投射迷宫，Wolfenstein 3D 风格实时渲染 | Canvas 2D · Raycasting · DDA 算法 |
 | [Taiji Bagua](projects/taiji-bagua.html) | 太极八卦技术映射交互可视化，五德雷达图 | SVG · 交互动画 · 数据驱动 |
@@ -21,6 +24,7 @@
 build-your-own-x/
 ├── index.html                       # 项目画廊着陆页
 ├── projects/                        # 交互式项目
+│   ├── tetris.html                  # 俄罗斯方块（人类/AI 双模式）
 │   ├── braun-weather-clock.html     # 伯朗风格天气时钟
 │   ├── raycaster-maze.html          # 光线投射迷宫
 │   ├── taiji-bagua.html             # 太极八卦交互可视化

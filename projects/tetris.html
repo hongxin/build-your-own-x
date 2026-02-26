@@ -21,6 +21,36 @@ body {
   user-select: none;
 }
 
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.game-title {
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.game-title h1 {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #58a6ff 0%, #a000f0 40%, #f0a000 70%, #00f0f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.game-title .subtitle {
+  font-size: 12px;
+  color: #6e7681;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
 .game-wrapper {
   display: flex;
   gap: 24px;
@@ -220,7 +250,36 @@ canvas#next-piece {
   letter-spacing: 1px;
 }
 
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.lang-btn {
+  padding: 3px 12px;
+  font-size: 11px;
+  font-family: inherit;
+  background: #161b22;
+  color: #8b949e;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+
+.lang-btn.active {
+  background: #58a6ff;
+  color: #0d1117;
+  font-weight: bold;
+}
+
+.lang-btn:not(.active):hover { background: #21262d; }
+
 @media (max-width: 640px) {
+  .game-title h1 { font-size: 24px; }
   .game-wrapper {
     flex-direction: column;
     align-items: center;
@@ -244,6 +303,16 @@ canvas#next-piece {
 </head>
 <body>
 
+<div class="game-container">
+  <div class="game-title">
+    <h1>TETRIS</h1>
+    <div class="subtitle" data-i18n="subtitle">by ZPower</div>
+    <div class="lang-switch">
+      <button class="lang-btn active" id="lang-en" data-lang="en">EN</button>
+      <button class="lang-btn" id="lang-zh" data-lang="zh">中文</button>
+    </div>
+  </div>
+
 <div class="game-wrapper">
   <div>
     <div class="board-wrapper">
@@ -260,25 +329,25 @@ canvas#next-piece {
       <button class="touch-btn" data-action="rotate">&#8635;</button>
       <button class="touch-btn" data-action="down">&#9660;</button>
       <button class="touch-btn" data-action="right">&#9654;</button>
-      <button class="touch-btn touch-btn-wide" data-action="drop">DROP</button>
+      <button class="touch-btn touch-btn-wide" data-action="drop" data-i18n="drop">DROP</button>
     </div>
   </div>
 
   <div class="side-panel">
     <div class="panel-box">
-      <h3>Next</h3>
+      <h3 data-i18n="next">Next</h3>
       <canvas id="next-piece" width="120" height="120"></canvas>
     </div>
 
     <div class="panel-box">
-      <h3>Stats</h3>
-      <div class="stat-row"><span>Score</span><span class="stat-value" id="score">0</span></div>
-      <div class="stat-row"><span>Lines</span><span class="stat-value" id="lines">0</span></div>
-      <div class="stat-row"><span>Level</span><span class="stat-value" id="level">1</span></div>
+      <h3 data-i18n="stats">Stats</h3>
+      <div class="stat-row"><span data-i18n="score">Score</span><span class="stat-value" id="score">0</span></div>
+      <div class="stat-row"><span data-i18n="lines">Lines</span><span class="stat-value" id="lines">0</span></div>
+      <div class="stat-row"><span data-i18n="level">Level</span><span class="stat-value" id="level">1</span></div>
     </div>
 
     <div class="panel-box">
-      <h3>Mode</h3>
+      <h3 data-i18n="mode">Mode</h3>
       <div class="mode-toggle" id="mode-toggle">
         <div class="toggle-track" id="toggle-track">
           <div class="toggle-thumb"></div>
@@ -294,13 +363,13 @@ canvas#next-piece {
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-start">Start</button>
-      <button class="btn" id="btn-pause">Pause</button>
+      <button class="btn btn-primary" id="btn-start" data-i18n="start">Start</button>
+      <button class="btn" id="btn-pause" data-i18n="pause">Pause</button>
     </div>
 
     <div class="panel-box">
-      <h3>Controls</h3>
-      <div class="controls-help">
+      <h3 data-i18n="controls">Controls</h3>
+      <div class="controls-help" id="controls-help">
         <kbd>←</kbd> <kbd>→</kbd> Move<br>
         <kbd>↓</kbd> Soft drop<br>
         <kbd>↑</kbd> Rotate<br>
@@ -312,8 +381,92 @@ canvas#next-piece {
     </div>
   </div>
 </div>
+</div>
 
 <script>
+// ===== i18n =====
+let currentLang = 'en';
+
+const I18N = {
+  en: {
+    subtitle: 'by ZPower',
+    next: 'Next',
+    stats: 'Stats',
+    score: 'Score',
+    lines: 'Lines',
+    level: 'Level',
+    mode: 'Mode',
+    controls: 'Controls',
+    start: 'Start',
+    pause: 'Pause',
+    resume: 'Resume',
+    drop: 'DROP',
+    gameOver: 'GAME OVER',
+    human: 'HUMAN',
+    ai: 'AI',
+    sound: 'SOUND',
+    muted: 'MUTED',
+    controlsHelp: '<kbd>←</kbd> <kbd>→</kbd> Move<br><kbd>↓</kbd> Soft drop<br><kbd>↑</kbd> Rotate<br><kbd>Space</kbd> Hard drop<br><kbd>A</kbd> Toggle AI<br><kbd>P</kbd> Pause<br><kbd>M</kbd> Mute',
+  },
+  zh: {
+    subtitle: 'by ZPower · 从零到极',
+    next: '下一个',
+    stats: '统计',
+    score: '分数',
+    lines: '行数',
+    level: '等级',
+    mode: '模式',
+    controls: '操作',
+    start: '开始',
+    pause: '暂停',
+    resume: '继续',
+    drop: '坠落',
+    gameOver: '游戏结束',
+    human: '人类',
+    ai: 'AI',
+    sound: '音效',
+    muted: '静音',
+    controlsHelp: '<kbd>←</kbd> <kbd>→</kbd> 移动<br><kbd>↓</kbd> 加速下落<br><kbd>↑</kbd> 旋转<br><kbd>Space</kbd> 直接坠落<br><kbd>A</kbd> 切换AI<br><kbd>P</kbd> 暂停<br><kbd>M</kbd> 静音',
+  }
+};
+
+function t(key) { return I18N[currentLang][key] || key; }
+
+function applyLanguage() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (key === 'controls') {
+      el.textContent = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  // Controls help uses innerHTML
+  document.getElementById('controls-help').innerHTML = t('controlsHelp');
+  // Dynamic labels
+  document.getElementById('mode-name').textContent = aiMode ? t('ai') : t('human');
+  document.getElementById('sound-name').textContent = soundEnabled ? t('sound') : t('muted');
+  // Pause button
+  const pauseBtn = document.getElementById('btn-pause');
+  pauseBtn.textContent = paused ? t('resume') : t('pause');
+  // Game over text
+  document.querySelector('#game-over h2').textContent = t('gameOver');
+  // Page title
+  document.title = currentLang === 'zh' ? '俄罗斯方块 · Tetris' : 'Tetris · by ZPower';
+  // Language buttons
+  document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+  document.getElementById('lang-zh').classList.toggle('active', currentLang === 'zh');
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  applyLanguage();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+
 // ===== Constants =====
 const COLS = 10;
 const ROWS = 20;
@@ -1069,7 +1222,7 @@ function startGame() {
   particles.length = 0;
   clearingRows = [];
   document.getElementById('game-over').classList.remove('visible');
-  document.getElementById('btn-pause').textContent = 'Pause';
+  document.getElementById('btn-pause').textContent = t('pause');
   updateStats();
   spawnPiece();
   running = true;
@@ -1091,7 +1244,7 @@ function endGame() {
 function togglePause() {
   if (gameOver || !running) return;
   paused = !paused;
-  document.getElementById('btn-pause').textContent = paused ? 'Resume' : 'Pause';
+  document.getElementById('btn-pause').textContent = paused ? t('resume') : t('pause');
   if (!paused) lastDrop = performance.now();
 }
 
@@ -1099,7 +1252,7 @@ function toggleAI() {
   aiMode = !aiMode;
   aiTarget = null;
   document.getElementById('toggle-track').classList.toggle('active', aiMode);
-  document.getElementById('mode-name').textContent = aiMode ? 'AI' : 'HUMAN';
+  document.getElementById('mode-name').textContent = aiMode ? t('ai') : t('human');
 }
 
 function toggleSound() {
@@ -1107,7 +1260,7 @@ function toggleSound() {
   const track = document.getElementById('sound-track');
   const name = document.getElementById('sound-name');
   track.classList.toggle('active', soundEnabled);
-  name.textContent = soundEnabled ? 'SOUND' : 'MUTED';
+  name.textContent = soundEnabled ? t('sound') : t('muted');
   if (!soundEnabled) stopBgMusic();
   else if (running && !gameOver) startBgMusic();
 }
@@ -1218,6 +1371,7 @@ if ('ontouchstart' in window) {
 }
 
 // ===== Init =====
+applyLanguage();
 updateStats();
 drawBoard(0);
 startGame();
