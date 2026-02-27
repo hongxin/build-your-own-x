@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>粒子物理引擎 · Particle Physics</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%2358a6ff'/></svg>">
+<style>
+/* ── Reset & Base ── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#0d1117;color:#c9d1d9;
+  font-family:'SF Mono','Cascadia Code','Consolas','Menlo',monospace;
+  overflow:hidden;height:100vh;display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased;user-select:none;
+}
+
+/* ── Header ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid #21262d;
+  background:#0d1117;z-index:10;flex-shrink:0;
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.title{
+  font-size:18px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(135deg,#58a6ff,#bc8cff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.subtitle{font-size:11px;color:#6e7681}
+.lang-switch{display:flex;gap:4px}
+.lang-btn{
+  background:#161b22;border:1px solid #30363d;color:#8b949e;
+  padding:3px 10px;border-radius:4px;cursor:pointer;font-size:11px;
+  font-family:inherit;transition:all .15s;
+}
+.lang-btn.active{background:#58a6ff;color:#0d1117;font-weight:bold;border-color:#58a6ff}
+.lang-btn:not(.active):hover{background:#21262d}
+
+/* ── Main Layout ── */
+.main{display:flex;flex:1;overflow:hidden}
+.canvas-wrap{flex:1;position:relative;background:#010409}
+canvas{display:block;width:100%;height:100%}
+
+/* ── Stats Overlay ── */
+.stats{
+  position:absolute;top:8px;left:8px;
+  background:rgba(13,17,23,.85);border:1px solid #21262d;
+  border-radius:6px;padding:6px 10px;font-size:11px;
+  color:#8b949e;pointer-events:none;
+}
+.stats span{color:#58a6ff;font-weight:600}
+
+/* ── Side Panel ── */
+.panel{
+  width:220px;flex-shrink:0;overflow-y:auto;
+  border-left:1px solid #21262d;background:#0d1117;
+  padding:12px;display:flex;flex-direction:column;gap:10px;
+}
+.panel-box{
+  background:#161b22;border:1px solid #30363d;
+  border-radius:6px;padding:10px;
+}
+.panel-box h3{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:#6e7681;margin-bottom:8px;
+}
+
+/* ── Scene Buttons ── */
+.scene-btns{display:flex;flex-direction:column;gap:4px}
+.scene-btn{
+  background:#21262d;border:1px solid #30363d;color:#c9d1d9;
+  padding:8px 10px;border-radius:4px;cursor:pointer;
+  font-family:inherit;font-size:12px;text-align:left;
+  transition:all .15s;display:flex;align-items:center;gap:8px;
+}
+.scene-btn:hover{border-color:#58a6ff}
+.scene-btn.active{background:#161b22;border-color:#58a6ff;color:#58a6ff}
+.scene-btn .scene-icon{font-size:16px;width:22px;text-align:center}
+
+/* ── Sliders ── */
+.slider-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.slider-row label{font-size:11px;color:#8b949e}
+.slider-row .val{font-size:11px;color:#58a6ff;min-width:28px;text-align:right}
+input[type=range]{
+  width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:#21262d;border-radius:2px;outline:none;margin-top:2px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:#58a6ff;cursor:pointer;
+}
+
+/* ── Action Buttons ── */
+.action-btns{display:flex;gap:4px;flex-wrap:wrap}
+.act-btn{
+  flex:1;min-width:60px;background:#21262d;border:1px solid #30363d;
+  color:#c9d1d9;padding:6px 4px;border-radius:4px;cursor:pointer;
+  font-family:inherit;font-size:11px;transition:all .15s;
+}
+.act-btn:hover{border-color:#58a6ff}
+.act-btn.on{background:#238636;border-color:#238636;color:#fff}
+
+/* ── Help text ── */
+.help-text{font-size:10px;color:#484f58;line-height:1.6}
+.help-text kbd{
+  background:#21262d;border:1px solid #30363d;border-radius:3px;
+  padding:1px 4px;font-size:9px;color:#8b949e;
+}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+  .panel{
+    position:fixed;bottom:0;left:0;right:0;width:100%;height:auto;
+    max-height:45vh;border-left:none;border-top:1px solid #21262d;
+    flex-direction:row;flex-wrap:wrap;z-index:20;
+    padding:8px;gap:6px;overflow-y:auto;
+  }
+  .panel-box{flex:1;min-width:140px}
+  .header .subtitle{display:none}
+  .help-text{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="title">PARTICLE PHYSICS</div>
+    <div class="subtitle" data-i18n="subtitle">Verlet 积分 · 距离约束 · 粒子系统</div>
+  </div>
+  <div class="lang-switch">
+    <button class="lang-btn" id="lang-en" data-lang="en">EN</button>
+    <button class="lang-btn active" id="lang-zh" data-lang="zh">中文</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="canvas-wrap">
+    <canvas id="cv"></canvas>
+    <div class="stats" id="stats">
+      <span id="st-fps">60</span> FPS &nbsp;
+      <span id="st-p">0</span> <span data-i18n="particles">粒子</span> &nbsp;
+      <span id="st-c">0</span> <span data-i18n="constraints">约束</span>
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="panel">
+    <!-- Scenes -->
+    <div class="panel-box">
+      <h3 data-i18n="scenes">场景</h3>
+      <div class="scene-btns">
+        <button class="scene-btn active" data-scene="cloth">
+          <span class="scene-icon">&#9634;</span>
+          <span data-i18n="cloth">布料模拟</span>
+        </button>
+        <button class="scene-btn" data-scene="softbody">
+          <span class="scene-icon">&#9679;</span>
+          <span data-i18n="softbody">软体物理</span>
+        </button>
+        <button class="scene-btn" data-scene="fountain">
+          <span class="scene-icon">&#9733;</span>
+          <span data-i18n="fountain">粒子喷泉</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="panel-box">
+      <h3 data-i18n="settings">设置</h3>
+      <div class="slider-row">
+        <label data-i18n="gravity">重力</label>
+        <span class="val" id="val-gravity">0.5</span>
+      </div>
+      <input type="range" id="sl-gravity" min="0" max="2" step="0.05" value="0.5">
+      <div class="slider-row" style="margin-top:6px">
+        <label data-i18n="iterations">迭代次数</label>
+        <span class="val" id="val-iter">6</span>
+      </div>
+      <input type="range" id="sl-iter" min="1" max="15" step="1" value="6">
+    </div>
+
+    <!-- Actions -->
+    <div class="panel-box">
+      <h3 data-i18n="actions">操作</h3>
+      <div class="action-btns">
+        <button class="act-btn" id="btn-reset" data-i18n="reset">重置</button>
+        <button class="act-btn" id="btn-pause" data-i18n="pause">暂停</button>
+        <button class="act-btn" id="btn-grid" data-i18n="grid">网格</button>
+        <button class="act-btn" id="btn-trails" data-i18n="trails">轨迹</button>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <div class="panel-box">
+      <h3 data-i18n="shortcuts">快捷键</h3>
+      <div class="help-text" id="help-text">
+        <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 切换场景<br>
+        <kbd>Space</kbd> 暂停/继续<br>
+        <kbd>R</kbd> 重置<br>
+        <kbd>G</kbd> 显示网格<br>
+        <kbd>T</kbd> 显示轨迹<br>
+        拖拽交互 · 喷泉点击爆炸
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─── i18n ───
+const I18N = {
+  en: {
+    subtitle: 'Verlet Integration · Distance Constraints · Particle System',
+    particles: 'particles', constraints: 'constraints',
+    scenes: 'SCENES', cloth: 'Cloth Sim', softbody: 'Soft Body', fountain: 'Fountain',
+    settings: 'SETTINGS', gravity: 'Gravity', iterations: 'Iterations',
+    actions: 'ACTIONS', reset: 'Reset', pause: 'Pause', resume: 'Resume',
+    grid: 'Grid', trails: 'Trails',
+    shortcuts: 'SHORTCUTS',
+    helpText: '<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Switch scenes<br><kbd>Space</kbd> Pause/Resume<br><kbd>R</kbd> Reset<br><kbd>G</kbd> Grid<br><kbd>T</kbd> Trails<br>Drag to interact · Click to explode (fountain)',
+    pageTitle: 'Particle Physics · by ZPower'
+  },
+  zh: {
+    subtitle: 'Verlet 积分 · 距离约束 · 粒子系统',
+    particles: '粒子', constraints: '约束',
+    scenes: '场景', cloth: '布料模拟', softbody: '软体物理', fountain: '粒子喷泉',
+    settings: '设置', gravity: '重力', iterations: '迭代次数',
+    actions: '操作', reset: '重置', pause: '暂停', resume: '继续',
+    grid: '网格', trails: '轨迹',
+    shortcuts: '快捷键',
+    helpText: '<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 切换场景<br><kbd>Space</kbd> 暂停/继续<br><kbd>R</kbd> 重置<br><kbd>G</kbd> 显示网格<br><kbd>T</kbd> 显示轨迹<br>拖拽交互 · 喷泉点击爆炸',
+    pageTitle: '粒子物理引擎 · Particle Physics'
+  }
+};
+
+let currentLang = 'zh';
+function t(k) { return I18N[currentLang][k] || k; }
+
+function applyLanguage() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (k === 'helpText') return;
+    el.textContent = t(k);
+  });
+  document.getElementById('help-text').innerHTML = t('helpText');
+  document.title = t('pageTitle');
+  // update pause/resume button text
+  document.getElementById('btn-pause').textContent = paused ? t('resume') : t('pause');
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyLanguage();
+  });
+});
+
+// ─── Canvas Setup ───
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W, H;
+
+function resize() {
+  const wrap = cv.parentElement;
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
+  cv.width = W * devicePixelRatio;
+  cv.height = H * devicePixelRatio;
+  cv.style.width = W + 'px';
+  cv.style.height = H + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', () => { resize(); buildScene(currentScene); });
+resize();
+
+// ─── Physics State ───
+let particles = [];
+let constraints = [];
+let config = {
+  gravity: 0.5,
+  iterations: 6,
+  dt: 1,
+  friction: 0.99,
+  bounce: 0.9
+};
+let currentScene = 'cloth';
+let paused = false;
+let showGrid = false;
+let showTrails = false;
+let trailCanvas = null;
+let trailCtx = null;
+
+// ─── Particle & Constraint Factories ───
+function createParticle(x, y, opts = {}) {
+  return {
+    x, y, px: opts.px ?? x, py: opts.py ?? y,
+    ax: 0, ay: 0,
+    radius: opts.radius ?? 3,
+    mass: opts.mass ?? 1,
+    pinned: opts.pinned ?? false,
+    color: opts.color ?? '#58a6ff',
+    life: opts.life ?? -1,
+    decay: opts.decay ?? 0,
+    group: opts.group ?? -1
+  };
+}
+
+function createConstraint(i1, i2, opts = {}) {
+  const p1 = particles[i1], p2 = particles[i2];
+  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  return {
+    p1: i1, p2: i2,
+    restLength: opts.restLength ?? Math.sqrt(dx * dx + dy * dy),
+    stiffness: opts.stiffness ?? 1,
+    breakThreshold: opts.breakThreshold ?? 0,
+    broken: false
+  };
+}
+
+// ─── Physics Engine Core ───
+function verletIntegrate() {
+  const g = config.gravity;
+  const fr = config.friction;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    if (p.pinned) continue;
+    const vx = (p.x - p.px) * fr + p.ax;
+    const vy = (p.y - p.py) * fr + p.ay + g;
+    p.px = p.x;
+    p.py = p.y;
+    p.x += vx;
+    p.y += vy;
+    p.ax = 0;
+    p.ay = 0;
+  }
+}
+
+function solveConstraints() {
+  for (let iter = 0; iter < config.iterations; iter++) {
+    for (let i = 0; i < constraints.length; i++) {
+      const c = constraints[i];
+      if (c.broken) continue;
+      const a = particles[c.p1], b = particles[c.p2];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+      const diff = (c.restLength - dist) / dist * c.stiffness;
+
+      // tear check
+      if (c.breakThreshold > 0 && dist > c.restLength * c.breakThreshold) {
+        c.broken = true;
+        continue;
+      }
+
+      const offsetX = dx * diff * 0.5;
+      const offsetY = dy * diff * 0.5;
+
+      if (!a.pinned) { a.x -= offsetX; a.y -= offsetY; }
+      if (!b.pinned) { b.x += offsetX; b.y += offsetY; }
+    }
+  }
+}
+
+function enforceBounds() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    if (p.pinned) continue;
+    const r = p.radius;
+    const b = config.bounce;
+    if (p.x < r) { p.x = r; p.px = p.x + (p.x - p.px) * b; }
+    if (p.x > W - r) { p.x = W - r; p.px = p.x + (p.x - p.px) * b; }
+    if (p.y < r) { p.y = r; p.py = p.y + (p.y - p.py) * b; }
+    if (p.y > H - r) { p.y = H - r; p.py = p.y + (p.y - p.py) * b; }
+  }
+}
+
+// ─── Scene Builders ───
+
+function buildClothScene() {
+  particles = [];
+  constraints = [];
+  const cols = 40, rows = 25;
+  const spacing = Math.min((W - 60) / cols, (H - 100) / rows, 16);
+  const startX = (W - cols * spacing) / 2;
+  const startY = 40;
+
+  // create particles grid
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      const x = startX + c * spacing;
+      const y = startY + r * spacing;
+      particles.push(createParticle(x, y, {
+        pinned: r === 0 && c % 4 === 0,
+        radius: 2,
+        color: `hsl(${210 + r * 2}, 70%, ${55 + c % 10}%)`
+      }));
+    }
+  }
+
+  // horizontal constraints
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols - 1; c++) {
+      constraints.push(createConstraint(r * cols + c, r * cols + c + 1, {
+        stiffness: 1, breakThreshold: 2.5
+      }));
+    }
+  }
+
+  // vertical constraints
+  for (let r = 0; r < rows - 1; r++) {
+    for (let c = 0; c < cols; c++) {
+      constraints.push(createConstraint(r * cols + c, (r + 1) * cols + c, {
+        stiffness: 1, breakThreshold: 2.5
+      }));
+    }
+  }
+
+  config.iterations = 6;
+  document.getElementById('sl-iter').value = 6;
+  document.getElementById('val-iter').textContent = '6';
+}
+
+function buildSoftBodyScene() {
+  particles = [];
+  constraints = [];
+
+  const bodies = [
+    { cx: W * 0.25, cy: H * 0.3, r: 50, n: 12, color: '#ff6b6b', stiff: 0.4 },
+    { cx: W * 0.50, cy: H * 0.2, r: 40, n: 10, color: '#51cf66', stiff: 0.5 },
+    { cx: W * 0.75, cy: H * 0.35, r: 55, n: 14, color: '#ffd43b', stiff: 0.35 },
+    { cx: W * 0.35, cy: H * 0.1, r: 35, n: 8, color: '#cc5de8', stiff: 0.45 },
+    { cx: W * 0.65, cy: H * 0.15, r: 45, n: 11, color: '#22b8cf', stiff: 0.4 }
+  ];
+
+  bodies.forEach((body, gi) => {
+    const baseIdx = particles.length;
+    // center particle
+    particles.push(createParticle(body.cx, body.cy, {
+      radius: 4, color: body.color, group: gi, mass: 2
+    }));
+    // ring particles
+    for (let i = 0; i < body.n; i++) {
+      const angle = (i / body.n) * Math.PI * 2;
+      particles.push(createParticle(
+        body.cx + Math.cos(angle) * body.r,
+        body.cy + Math.sin(angle) * body.r,
+        { radius: 4, color: body.color, group: gi }
+      ));
+    }
+    // radial constraints (center to ring)
+    for (let i = 0; i < body.n; i++) {
+      constraints.push(createConstraint(baseIdx, baseIdx + 1 + i, {
+        stiffness: body.stiff
+      }));
+    }
+    // circumference constraints (ring neighbors)
+    for (let i = 0; i < body.n; i++) {
+      constraints.push(createConstraint(
+        baseIdx + 1 + i,
+        baseIdx + 1 + (i + 1) % body.n,
+        { stiffness: body.stiff }
+      ));
+    }
+    // diagonal constraints (every other ring particle)
+    for (let i = 0; i < body.n; i++) {
+      constraints.push(createConstraint(
+        baseIdx + 1 + i,
+        baseIdx + 1 + (i + Math.floor(body.n / 2)) % body.n,
+        { stiffness: body.stiff * 0.5 }
+      ));
+    }
+  });
+
+  config.iterations = 5;
+  document.getElementById('sl-iter').value = 5;
+  document.getElementById('val-iter').textContent = '5';
+}
+
+let fountainTimer = 0;
+function buildFountainScene() {
+  particles = [];
+  constraints = [];
+  fountainTimer = 0;
+  config.iterations = 1;
+  document.getElementById('sl-iter').value = 1;
+  document.getElementById('val-iter').textContent = '1';
+}
+
+function updateFountain() {
+  // emit new particles
+  fountainTimer++;
+  if (fountainTimer % 2 === 0) {
+    const cx = W / 2;
+    const by = H - 20;
+    for (let i = 0; i < 3; i++) {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+      const speed = 8 + Math.random() * 5;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const hue = (fountainTimer * 2 + Math.random() * 60) % 360;
+      particles.push(createParticle(cx + (Math.random() - 0.5) * 20, by, {
+        px: cx + (Math.random() - 0.5) * 20 - vx,
+        py: by - vy,
+        radius: 2 + Math.random() * 2,
+        color: `hsl(${hue}, 90%, 65%)`,
+        life: 1,
+        decay: 0.004 + Math.random() * 0.003
+      }));
+    }
+  }
+
+  // update life and remove dead
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    if (p.life > 0) {
+      p.life -= p.decay;
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+      }
+    }
+  }
+
+  // cap particles
+  if (particles.length > 2000) {
+    particles.splice(0, particles.length - 2000);
+  }
+}
+
+function fountainExplode(mx, my) {
+  const radius = 120;
+  const force = 15;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const dx = p.x - mx, dy = p.y - my;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < radius && dist > 0) {
+      const strength = (1 - dist / radius) * force;
+      p.px = p.x - (dx / dist) * strength;
+      p.py = p.y - (dy / dist) * strength;
+    }
+  }
+  // spawn burst particles
+  for (let i = 0; i < 40; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 3 + Math.random() * 8;
+    const hue = Math.random() * 360;
+    particles.push(createParticle(mx, my, {
+      px: mx - Math.cos(angle) * speed,
+      py: my - Math.sin(angle) * speed,
+      radius: 1.5 + Math.random() * 2,
+      color: `hsl(${hue}, 100%, 70%)`,
+      life: 1,
+      decay: 0.01 + Math.random() * 0.015
+    }));
+  }
+}
+
+function buildScene(name) {
+  currentScene = name;
+  clearTrails();
+  if (name === 'cloth') buildClothScene();
+  else if (name === 'softbody') buildSoftBodyScene();
+  else if (name === 'fountain') buildFountainScene();
+  // update UI
+  document.querySelectorAll('.scene-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.scene === name);
+  });
+}
+
+// ─── Trail Canvas ───
+function initTrailCanvas() {
+  trailCanvas = document.createElement('canvas');
+  trailCtx = trailCanvas.getContext('2d');
+  trailCanvas.width = cv.width;
+  trailCanvas.height = cv.height;
+}
+function clearTrails() {
+  if (trailCtx) {
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+  }
+}
+
+// ─── Rendering ───
+function renderGrid() {
+  ctx.strokeStyle = '#161b22';
+  ctx.lineWidth = 1;
+  const step = 40;
+  ctx.beginPath();
+  for (let x = step; x < W; x += step) {
+    ctx.moveTo(x, 0); ctx.lineTo(x, H);
+  }
+  for (let y = step; y < H; y += step) {
+    ctx.moveTo(0, y); ctx.lineTo(W, y);
+  }
+  ctx.stroke();
+}
+
+function renderConstraints() {
+  ctx.lineWidth = 1;
+  for (let i = 0; i < constraints.length; i++) {
+    const c = constraints[i];
+    if (c.broken) continue;
+    const a = particles[c.p1], b = particles[c.p2];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const strain = Math.abs(dist - c.restLength) / c.restLength;
+    // strain coloring: blue(0) → yellow(0.3) → red(0.6+)
+    let r, g, bl;
+    if (strain < 0.3) {
+      const t = strain / 0.3;
+      r = Math.floor(88 + t * 167);
+      g = Math.floor(166 + t * (200 - 166));
+      bl = Math.floor(255 * (1 - t));
+    } else {
+      const t = Math.min((strain - 0.3) / 0.3, 1);
+      r = 255;
+      g = Math.floor(200 * (1 - t));
+      bl = 0;
+    }
+    ctx.strokeStyle = `rgb(${r},${g},${bl})`;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+}
+
+function renderSoftBodyFill() {
+  // group particles by group
+  const groups = {};
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    if (p.group >= 0) {
+      if (!groups[p.group]) groups[p.group] = [];
+      groups[p.group].push(p);
+    }
+  }
+  for (const gid in groups) {
+    const pts = groups[gid];
+    if (pts.length < 3) continue;
+    // first particle is center, rest are ring
+    const center = pts[0];
+    const ring = pts.slice(1);
+    // fill polygon
+    ctx.beginPath();
+    ctx.moveTo(ring[0].x, ring[0].y);
+    for (let i = 1; i < ring.length; i++) {
+      ctx.lineTo(ring[i].x, ring[i].y);
+    }
+    ctx.closePath();
+    // semi-transparent fill
+    const baseColor = center.color;
+    ctx.fillStyle = baseColor + '40'; // ~25% alpha
+    ctx.fill();
+    ctx.strokeStyle = baseColor + 'aa';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+function renderParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const alpha = p.life > 0 ? p.life : 1;
+    if (currentScene === 'fountain') {
+      // glow effect for fountain
+      const r = p.radius * (1 + (1 - alpha) * 2);
+      ctx.globalAlpha = alpha * 0.3;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else {
+      ctx.fillStyle = p.color;
+      if (p.pinned) {
+        ctx.fillStyle = '#ff6b6b';
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function renderTrails() {
+  if (!trailCanvas || trailCanvas.width !== cv.width) initTrailCanvas();
+  const s = devicePixelRatio;
+  // fade existing trails
+  trailCtx.fillStyle = 'rgba(1,4,9,0.05)';
+  trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
+  // draw current positions
+  trailCtx.fillStyle = 'rgba(88,166,255,0.4)';
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    trailCtx.beginPath();
+    trailCtx.arc(p.x * s, p.y * s, 1 * s, 0, Math.PI * 2);
+    trailCtx.fill();
+  }
+  // blit to main canvas
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 0.6;
+  ctx.drawImage(trailCanvas, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+
+// ─── Input Handling ───
+let dragIndex = -1;
+let mouseX = 0, mouseY = 0;
+
+function getCanvasPos(e) {
+  const rect = cv.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: clientX - rect.left, y: clientY - rect.top };
+}
+
+function findNearest(mx, my, maxDist) {
+  let best = -1, bestDist = maxDist * maxDist;
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const dx = p.x - mx, dy = p.y - my;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestDist) { bestDist = d2; best = i; }
+  }
+  return best;
+}
+
+function onPointerDown(e) {
+  e.preventDefault();
+  const pos = getCanvasPos(e);
+  mouseX = pos.x; mouseY = pos.y;
+
+  if (currentScene === 'fountain') {
+    fountainExplode(pos.x, pos.y);
+    return;
+  }
+
+  dragIndex = findNearest(pos.x, pos.y, 30);
+}
+
+function onPointerMove(e) {
+  e.preventDefault();
+  const pos = getCanvasPos(e);
+  mouseX = pos.x; mouseY = pos.y;
+  if (dragIndex >= 0) {
+    const p = particles[dragIndex];
+    p.x = pos.x;
+    p.y = pos.y;
+    p.px = pos.x;
+    p.py = pos.y;
+  }
+}
+
+function onPointerUp(e) {
+  dragIndex = -1;
+}
+
+cv.addEventListener('mousedown', onPointerDown);
+cv.addEventListener('mousemove', onPointerMove);
+cv.addEventListener('mouseup', onPointerUp);
+cv.addEventListener('mouseleave', onPointerUp);
+cv.addEventListener('touchstart', onPointerDown, { passive: false });
+cv.addEventListener('touchmove', onPointerMove, { passive: false });
+cv.addEventListener('touchend', onPointerUp);
+
+// ─── Keyboard ───
+document.addEventListener('keydown', e => {
+  const key = e.key.toLowerCase();
+  if (key === '1') buildScene('cloth');
+  else if (key === '2') buildScene('softbody');
+  else if (key === '3') buildScene('fountain');
+  else if (key === ' ') { e.preventDefault(); togglePause(); }
+  else if (key === 'r') buildScene(currentScene);
+  else if (key === 'g') toggleGrid();
+  else if (key === 't') toggleTrails();
+});
+
+// ─── UI Controls ───
+document.querySelectorAll('.scene-btn').forEach(btn => {
+  btn.addEventListener('click', () => buildScene(btn.dataset.scene));
+});
+
+document.getElementById('sl-gravity').addEventListener('input', e => {
+  config.gravity = parseFloat(e.target.value);
+  document.getElementById('val-gravity').textContent = config.gravity.toFixed(2);
+});
+
+document.getElementById('sl-iter').addEventListener('input', e => {
+  config.iterations = parseInt(e.target.value);
+  document.getElementById('val-iter').textContent = config.iterations;
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => buildScene(currentScene));
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('btn-pause').textContent = paused ? t('resume') : t('pause');
+  document.getElementById('btn-pause').classList.toggle('on', paused);
+}
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  document.getElementById('btn-grid').classList.toggle('on', showGrid);
+}
+document.getElementById('btn-grid').addEventListener('click', toggleGrid);
+
+function toggleTrails() {
+  showTrails = !showTrails;
+  document.getElementById('btn-trails').classList.toggle('on', showTrails);
+  if (!showTrails) clearTrails();
+}
+document.getElementById('btn-trails').addEventListener('click', toggleTrails);
+
+// ─── FPS Counter ───
+let frameCount = 0, lastFpsTime = performance.now(), currentFps = 60;
+function updateFps() {
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime >= 500) {
+    currentFps = Math.round(frameCount / ((now - lastFpsTime) / 1000));
+    lastFpsTime = now;
+    frameCount = 0;
+  }
+}
+
+// ─── Main Loop ───
+function update() {
+  if (!paused) {
+    if (currentScene === 'fountain') updateFountain();
+    verletIntegrate();
+    solveConstraints();
+    enforceBounds();
+  }
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  if (showGrid) renderGrid();
+  if (showTrails) renderTrails();
+  if (currentScene === 'softbody') renderSoftBodyFill();
+  renderConstraints();
+  renderParticles();
+
+  // update stats
+  const activeP = particles.length;
+  const activeC = constraints.filter(c => !c.broken).length;
+  document.getElementById('st-fps').textContent = currentFps;
+  document.getElementById('st-p').textContent = activeP;
+  document.getElementById('st-c').textContent = activeC;
+}
+
+function loop() {
+  updateFps();
+  update();
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ─── Init ───
+initTrailCanvas();
+buildScene('cloth');
+applyLanguage();
+loop();
+</script>
+</body>
+</html>
