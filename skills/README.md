@@ -167,7 +167,8 @@ ZPower 的设计融合了多部中国古典著作的智慧：
 
 ```
 skills/
-├── README.md          # 本文档
+├── README.md          # 本文档（中文）
+├── README_EN.md       # English documentation
 ├── zpower/            # 元技能：五行总纲
 │   └── SKILL.md
 ├── z-observe/         # 水·观：探索与发现
@@ -178,8 +179,13 @@ skills/
 │   └── SKILL.md
 ├── z-verify/          # 土·验：验证与诊断
 │   └── SKILL.md
-└── z-evolve/          # 金·化：进化与收官
-    └── SKILL.md
+├── z-evolve/          # 金·化：进化与收官
+│   └── SKILL.md
+├── z-diagram/         # 图·象：系统图表生成
+│   ├── SKILL.md       # 图表生成技能
+│   └── EXPERIMENT.md  # 方案评测实验报告
+├── zpower-diagram.png     # 五行原理图（中文）
+└── zpower-diagram-en.png  # 五行原理图（英文）
 ```
 
 ## 许可

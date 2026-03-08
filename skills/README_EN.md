@@ -179,8 +179,13 @@ skills/
 │   └── SKILL.md
 ├── z-verify/          # Earth · Verify: Validation & diagnosis
 │   └── SKILL.md
-└── z-evolve/          # Metal · Evolve: Refinement & crystallization
-    └── SKILL.md
+├── z-evolve/          # Metal · Evolve: Refinement & crystallization
+│   └── SKILL.md
+├── z-diagram/         # Diagram · Image: System diagram generation
+│   ├── SKILL.md       # Diagram generation skill
+│   └── EXPERIMENT.md  # Tool evaluation experiment report
+├── zpower-diagram.png     # Five Elements diagram (Chinese)
+└── zpower-diagram-en.png  # Five Elements diagram (English)
 ```
 
 ## License
