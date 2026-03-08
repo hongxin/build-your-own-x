@@ -8,6 +8,11 @@ ZPower 是一套为 [Claude Code](https://docs.anthropic.com/en/docs/claude-code
 
 ## 五行循环
 
+![ZPower 五行技能系统原理图](zpower-diagram.png)
+
+<details>
+<summary>ASCII 版本</summary>
+
 ```
           z-observe (观·水)
          ╱ 金生水↑    ↓水生木 ╲
@@ -15,6 +20,8 @@ ZPower 是一套为 [Claude Code](https://docs.anthropic.com/en/docs/claude-code
          ↑ 土生金              木生火 ↓
   z-verify (验·土) ←── 火生土 ── z-build (行·火)
 ```
+
+</details>
 
 ### 相生 — 自然流转
 
